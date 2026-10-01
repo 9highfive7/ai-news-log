@@ -119,21 +119,6 @@
       ]
     },
     {
-      "name": "ZDNET Japan",
-      "url": "https://japan.zdnet.com/rss/news/index.rdf",
-      "keywords": [
-        "AI",
-        "生成AI",
-        "LLM",
-        "機械学習",
-        "ChatGPT",
-        "Copilot",
-        "Gemini",
-        "Claude",
-        "エージェント"
-      ]
-    },
-    {
       "name": "GIGAZINE",
       "url": "https://gigazine.net/news/rss_2.0/",
       "keywords": [
@@ -147,19 +132,6 @@
         "Anthropic",
         "機械学習",
         "チャットボット"
-      ]
-    },
-    {
-      "name": "VentureBeat AI",
-      "url": "https://feeds.feedburner.com/venturebeat/SZYF",
-      "keywords": [
-        "AI",
-        "Copilot",
-        "LLM",
-        "machine learning",
-        "generative",
-        "agent",
-        "model"
       ]
     }
   ]

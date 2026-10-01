@@ -80,8 +80,12 @@ export function matchesKeywords(item: FeedItem, keywords?: string[]): boolean {
   if (!keywords || keywords.length === 0) return true;
   const text = `${item.title} ${item.summary}`;
   return keywords.some((k) => {
-    // 英字だけのキーワード（AIなど）は単語境界で判定し、"MAIL" などへの誤マッチを防ぐ
-    if (/^[A-Za-z0-9]+$/.test(k)) return new RegExp(`(^|[^A-Za-z])${k}([^A-Za-z]|$)`).test(text);
+    // 英字のキーワードは単語境界で判定し、"MAIL" などへの誤マッチを防ぐ。
+    // 大文字だけの略語（AI, LLM）は大文字小文字を区別し、それ以外（model など）は区別しない
+    if (/^[A-Za-z0-9 ]+$/.test(k)) {
+      const flags = k === k.toUpperCase() ? '' : 'i';
+      return new RegExp(`(^|[^A-Za-z])${k}([^A-Za-z]|$)`, flags).test(text);
+    }
     return text.includes(k);
   });
 }
