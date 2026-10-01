@@ -6,6 +6,10 @@ on:
     - cron: '0 22 * * *'
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: 'dry-run（記事を生成してアーティファクトに保存するだけ。コミット・デプロイ・seen.json更新なし）'
+        type: boolean
+        default: false
       force_deploy:
         description: '新しい記事が0件でもサイトをビルド・デプロイする'
         type: boolean
@@ -50,10 +54,17 @@ jobs:
           # Settings > Secrets and variables > Actions > Variables で上書き可能（未設定なら claude-haiku-4-5）
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
           MAX_ARTICLES: ${{ vars.MAX_ARTICLES }}
-        run: npm run generate
+        run: npm run ${{ inputs.dry_run && 'generate:dry' || 'generate' }}
+
+      - name: Upload dry-run articles
+        if: inputs.dry_run && steps.generate.outputs.count != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-posts
+          path: src/content/posts/*.md
 
       - name: Commit and push
-        if: steps.generate.outputs.count != '0'
+        if: ${{ !inputs.dry_run && steps.generate.outputs.count != '0' }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -71,7 +82,7 @@ jobs:
     if: >-
       always() && (
         github.event_name == 'push' ||
-        (needs.generate.result == 'success' &&
+        (needs.generate.result == 'success' && !inputs.dry_run &&
           (needs.generate.outputs.count != '0' || inputs.force_deploy))
       )
     runs-on: ubuntu-latest

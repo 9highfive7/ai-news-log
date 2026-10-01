@@ -47,6 +47,9 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 **Actions** タブ → **Daily AI News** → **Run workflow** で手動実行できます。
 新しい記事が0件でもサイトを公開したい場合（初回など）は、**force_deploy** にチェックを入れて実行してください。
 
+**dry_run** にチェックを入れると、記事を生成するだけでコミット・デプロイ・`data/seen.json` の更新は行いません。
+生成された Markdown は実行結果ページ下部の **Artifacts**（`dry-run-posts`）からダウンロードできます。
+
 > 定期実行（schedule）はリポジトリのデフォルトブランチでのみ動きます。デフォルトブランチを `main` にしておいてください。
 
 ## 取得元（RSS）の追加・削除
