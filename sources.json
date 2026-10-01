@@ -1,22 +1,166 @@
 {
   "maxAgeHours": 36,
   "sources": [
-    { "name": "OpenAI News", "url": "https://openai.com/news/rss.xml" },
-    { "name": "Google AI Blog", "url": "https://blog.google/technology/ai/rss/" },
-    { "name": "Google DeepMind", "url": "https://deepmind.google/blog/rss.xml" },
-    { "name": "Microsoft AI Blog", "url": "https://blogs.microsoft.com/ai/feed/" },
-    { "name": "Hugging Face Blog", "url": "https://huggingface.co/blog/feed.xml" },
-    { "name": "AWS Machine Learning Blog", "url": "https://aws.amazon.com/blogs/machine-learning/feed/" },
-    { "name": "TechCrunch AI", "url": "https://techcrunch.com/category/artificial-intelligence/feed/" },
-    { "name": "The Verge AI", "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml" },
-    { "name": "VentureBeat AI", "url": "https://venturebeat.com/category/ai/feed/" },
-    { "name": "MIT Technology Review AI", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed" },
-    { "name": "Ars Technica AI", "url": "https://arstechnica.com/ai/feed/" },
-    { "name": "The Decoder", "url": "https://the-decoder.com/feed/" },
-    { "name": "ITmedia AI+", "url": "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml" },
-    { "name": "Publickey", "url": "https://www.publickey1.jp/atom.xml", "keywords": ["AI", "生成AI", "LLM", "機械学習", "ChatGPT", "Copilot", "Gemini", "Claude", "エージェント"] },
-    { "name": "GIGAZINE", "url": "https://gigazine.net/news/rss_2.0/", "keywords": ["AI", "生成AI", "LLM", "ChatGPT", "OpenAI", "Gemini", "Claude", "Anthropic", "機械学習", "チャットボット"] },
-    { "name": "ZDNET Japan", "url": "https://japan.zdnet.com/rss/index.rdf", "keywords": ["AI", "生成AI", "LLM", "機械学習", "ChatGPT", "Copilot", "Gemini", "Claude", "エージェント"] },
-    { "name": "Meta AI Blog", "url": "https://ai.meta.com/blog/rss/" }
+    {
+      "name": "OpenAI News",
+      "url": "https://openai.com/news/rss.xml"
+    },
+    {
+      "name": "Google AI Blog",
+      "url": "https://blog.google/technology/ai/rss/"
+    },
+    {
+      "name": "Google DeepMind",
+      "url": "https://deepmind.google/blog/rss.xml"
+    },
+    {
+      "name": "Microsoft Official Blog",
+      "url": "https://blogs.microsoft.com/feed/",
+      "keywords": [
+        "AI",
+        "Copilot",
+        "LLM",
+        "machine learning",
+        "generative",
+        "agent",
+        "model"
+      ]
+    },
+    {
+      "name": "Microsoft Source",
+      "url": "https://news.microsoft.com/source/feed/",
+      "keywords": [
+        "AI",
+        "Copilot",
+        "LLM",
+        "machine learning",
+        "generative",
+        "agent",
+        "model"
+      ]
+    },
+    {
+      "name": "Microsoft Research Blog",
+      "url": "https://www.microsoft.com/en-us/research/feed/"
+    },
+    {
+      "name": "Meta Newsroom",
+      "url": "https://about.fb.com/news/feed/",
+      "keywords": [
+        "AI",
+        "Copilot",
+        "LLM",
+        "machine learning",
+        "generative",
+        "agent",
+        "model",
+        "Llama"
+      ]
+    },
+    {
+      "name": "Meta Engineering",
+      "url": "https://engineering.fb.com/feed/",
+      "keywords": [
+        "AI",
+        "Copilot",
+        "LLM",
+        "machine learning",
+        "generative",
+        "agent",
+        "model",
+        "Llama"
+      ]
+    },
+    {
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml"
+    },
+    {
+      "name": "AWS Machine Learning Blog",
+      "url": "https://aws.amazon.com/blogs/machine-learning/feed/"
+    },
+    {
+      "name": "TechCrunch AI",
+      "url": "https://techcrunch.com/category/artificial-intelligence/feed/"
+    },
+    {
+      "name": "The Verge AI",
+      "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+    },
+    {
+      "name": "MIT Technology Review AI",
+      "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed"
+    },
+    {
+      "name": "Ars Technica AI",
+      "url": "https://arstechnica.com/ai/feed/"
+    },
+    {
+      "name": "The Decoder",
+      "url": "https://the-decoder.com/feed/"
+    },
+    {
+      "name": "ITmedia AI+",
+      "url": "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml"
+    },
+    {
+      "name": "Publickey",
+      "url": "https://www.publickey1.jp/atom.xml",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "LLM",
+        "機械学習",
+        "ChatGPT",
+        "Copilot",
+        "Gemini",
+        "Claude",
+        "エージェント"
+      ]
+    },
+    {
+      "name": "ZDNET Japan",
+      "url": "https://japan.zdnet.com/rss/news/index.rdf",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "LLM",
+        "機械学習",
+        "ChatGPT",
+        "Copilot",
+        "Gemini",
+        "Claude",
+        "エージェント"
+      ]
+    },
+    {
+      "name": "GIGAZINE",
+      "url": "https://gigazine.net/news/rss_2.0/",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "LLM",
+        "ChatGPT",
+        "OpenAI",
+        "Gemini",
+        "Claude",
+        "Anthropic",
+        "機械学習",
+        "チャットボット"
+      ]
+    },
+    {
+      "name": "VentureBeat AI",
+      "url": "https://feeds.feedburner.com/venturebeat/SZYF",
+      "keywords": [
+        "AI",
+        "Copilot",
+        "LLM",
+        "machine learning",
+        "generative",
+        "agent",
+        "model"
+      ]
+    }
   ]
 }
