@@ -1,0 +1,109 @@
+name: Daily AI News
+
+on:
+  schedule:
+    # 毎朝 7:00 JST（= 22:00 UTC 前日）。混雑時は数分〜数十分遅れることがあります
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: '新しい記事が0件でもサイトをビルド・デプロイする'
+        type: boolean
+        default: false
+  # コードやデザインの変更時は、記事生成なしでビルド・デプロイのみ行う
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# 同時に複数回走ってコミットが衝突しないようにする
+concurrency:
+  group: daily-ai-news
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      count: ${{ steps.generate.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate articles
+        id: generate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Settings > Secrets and variables > Actions > Variables で上書き可能（未設定なら claude-haiku-4-5）
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          MAX_ARTICLES: ${{ vars.MAX_ARTICLES }}
+        run: npm run generate
+
+      - name: Commit and push
+        if: steps.generate.outputs.count != '0'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/content/posts data/seen.json
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "Add AI news for $(TZ=Asia/Tokyo date +%Y-%m-%d) (${{ steps.generate.outputs.count }} posts)"
+          git push
+
+  build:
+    needs: generate
+    # push 時は generate がスキップされるので always() で評価し、条件を明示する
+    if: >-
+      always() && (
+        github.event_name == 'push' ||
+        (needs.generate.result == 'success' &&
+          (needs.generate.outputs.count != '0' || inputs.force_deploy))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # generate ジョブで push したコミットを含む最新のブランチを取得する
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/configure-pages@v5
+
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

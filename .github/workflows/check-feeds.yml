@@ -1,0 +1,26 @@
+name: Check feeds
+
+# sources.json の各フィードが取得できるかを確認する（記事生成・コミットはしない）
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'sources.json'
+      - 'scripts/**'
+      - '.github/workflows/check-feeds.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check-feeds

@@ -1,0 +1,27 @@
+---
+import type { GetStaticPaths } from 'astro';
+import PostList from '../components/PostList.astro';
+import { SITE_DESCRIPTION } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPosts, url } from '../lib';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getPosts();
+  return paginate(posts, { pageSize: 50 });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+
+<BaseLayout title={page.currentPage > 1 ? `${page.currentPage}ページ目` : undefined}>
+  <p class="page-lead">{SITE_DESCRIPTION}</p>
+  {page.data.length === 0 ? <p>まだ記事がありません。</p> : <PostList posts={page.data} />}
+  {
+    (page.url.prev || page.url.next) && (
+      <nav class="pagination" aria-label="ページ送り">
+        <span>{page.url.prev && <a href={page.currentPage === 2 ? url() : page.url.prev}>← 新しい記事</a>}</span>
+        <span>{page.url.next && <a href={page.url.next}>古い記事 →</a>}</span>
+      </nav>
+    )
+  }
+</BaseLayout>

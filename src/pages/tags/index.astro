@@ -1,0 +1,24 @@
+---
+import { TAGS } from '../../consts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, url } from '../../lib';
+
+const posts = await getPosts();
+const counts = TAGS.map((tag) => ({ ...tag, count: posts.filter((p) => p.data.tags.includes(tag.name)).length }));
+---
+
+<BaseLayout title="タグ一覧">
+  <h1 class="page-title">タグ一覧</h1>
+  <ul class="tag-cloud">
+    {
+      counts.map((tag) => (
+        <li>
+          <a class="tag" href={url(`tags/${tag.slug}/`)}>
+            {tag.name}
+            <span class="tag-count">{tag.count}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>

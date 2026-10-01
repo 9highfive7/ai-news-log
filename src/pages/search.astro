@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib';
+---
+
+<BaseLayout title="検索">
+  <h1 class="page-title">サイト内検索</h1>
+  <link rel="stylesheet" href={url('pagefind/pagefind-ui.css')} />
+  <div id="search" data-bundle={url('pagefind/')}></div>
+  <noscript>検索にはJavaScriptが必要です。</noscript>
+  <p class="page-lead" id="search-dev-note" hidden>
+    検索インデックスは <code>npm run build</code> 時に作成されます。開発サーバーでは検索できないので、<code>npm run build && npm run preview</code> で確認してください。
+  </p>
+  <script is:inline type="module">
+    const el = document.getElementById('search');
+    const bundle = el.dataset.bundle;
+    try {
+      await import(bundle + 'pagefind-ui.js');
+      new window.PagefindUI({
+        element: '#search',
+        bundlePath: bundle,
+        showSubResults: false,
+        showImages: false,
+        translations: { placeholder: 'キーワードで記事を検索' },
+      });
+    } catch {
+      document.getElementById('search-dev-note').hidden = false;
+    }
+  </script>
+</BaseLayout>

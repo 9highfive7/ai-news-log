@@ -1,0 +1,48 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import { tagSlug } from '../../consts';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatDateHeading, getPosts, postUrl, url } from '../../lib';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    // 一覧は新しい順なので、i-1 が新しい記事、i+1 が古い記事
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post, newer, older } = Astro.props;
+const { Content } = await render(post);
+---
+
+<BaseLayout title={post.data.title} description={`${post.data.source_name}の記事を日本語で要約しました。`}>
+  <article data-pagefind-body>
+    <header class="post-header">
+      <h1>{post.data.title}</h1>
+      <div class="meta" data-pagefind-ignore>
+        <time datetime={post.data.date.toISOString()}>{formatDateHeading(post.data.date)}</time>
+        <span>出典: <a href={post.data.source_url} rel="noopener" target="_blank">{post.data.source_name}</a></span>
+        {
+          post.data.tags.map((tag) => (
+            <a class="tag" href={url(`tags/${tagSlug(tag)}/`)} data-pagefind-filter="タグ">
+              {tag}
+            </a>
+          ))
+        }
+      </div>
+    </header>
+    <div class="post-body">
+      <Content />
+    </div>
+  </article>
+  <p class="notice">
+    この記事は元記事をもとにAIが自動で要約したものです。誤りを含む可能性があるため、詳細や正確な情報は元記事をご確認ください。
+  </p>
+  <nav class="post-nav" aria-label="前後の記事">
+    <span>{newer && <a href={postUrl(newer)}>← {newer.data.title}</a>}</span>
+    <span>{older && <a href={postUrl(older)}>{older.data.title} →</a>}</span>
+  </nav>
+</BaseLayout>
