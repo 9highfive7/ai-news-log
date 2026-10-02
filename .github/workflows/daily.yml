@@ -83,6 +83,13 @@ jobs:
         run: |
           mkdir -p dry-run-output
           git ls-files --others --exclude-standard src/content/posts | xargs -r -I{} cp {} dry-run-output/
+          # 実行結果ページの Summary でも読めるようにする
+          {
+            echo "# dry-run で生成された記事"
+            for f in dry-run-output/*.md; do
+              echo; echo "---"; echo; echo "### $(basename "$f")"; echo; echo '```markdown'; cat "$f"; echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload dry-run articles
         if: inputs.dry_run && steps.generate.outputs.count != '0'

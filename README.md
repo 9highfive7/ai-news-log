@@ -58,7 +58,7 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 新しい記事が0件でもサイトを公開したい場合（初回など）は、**force_deploy** にチェックを入れて実行してください。
 
 **dry_run** にチェックを入れると、記事を生成するだけでコミット・デプロイ・`data/seen.json` の更新は行いません。
-生成された Markdown は実行結果ページ下部の **Artifacts**（`dry-run-posts`）からダウンロードできます。
+生成された Markdown は実行結果ページの **Summary** に表示されます（**Artifacts** の `dry-run-posts` からダウンロードも可）。
 
 ### 4. Claude と Gemini を比較する
 
