@@ -69,6 +69,10 @@ jobs:
           MAX_ARTICLES: ${{ vars.MAX_ARTICLES }}
         run: npm run ${{ inputs.dry_run && 'generate:dry' || 'generate' }}
 
+      - name: Print compare report
+        if: inputs.provider == 'compare'
+        run: cat compare-output/*.md 2>/dev/null || echo "比較レポートはありません"
+
       - name: Upload compare report
         if: inputs.provider == 'compare'
         uses: actions/upload-artifact@v4
