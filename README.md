@@ -34,6 +34,7 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 | --- | --- |
 | `ANTHROPIC_API_KEY` | Anthropic の API キー（[Claude Console](https://console.anthropic.com/) で発行） |
 | `GEMINI_API_KEY` | Gemini の API キー（[Google AI Studio](https://aistudio.google.com/) で発行） |
+| `TYPESAFE_API_KEY`（任意） | 比較モードの審査役 Jev の API キー（[TypeSafe AI](https://typesafe.ai/) で発行）。未登録なら審査なしで比較します |
 
 任意で、同じ画面の **Variables** タブから次の値を設定できます。
 
@@ -43,6 +44,7 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 | `ANTHROPIC_MODEL` | Claude を使うときのモデル | `claude-haiku-4-5` |
 | `GEMINI_MODEL` | Gemini を使うときのモデル | `gemini-2.5-flash-lite` |
 | `MAX_ARTICLES` | 1日に生成する最大本数 | `5` |
+| `TYPESAFE_DEFAULT_MODEL` | 審査に使う Jev のモデル | `jev-latest` |
 
 ### 2. GitHub Pages の公開元を「GitHub Actions」にする
 
@@ -67,6 +69,11 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
   - 集計（記事化できた本数、形式エラーでの出し直し回数、トークン数、概算費用、応答時間）
   - 選別結果の並び比べ（何を選んだか・理由）
   - ニュースごとの記事の読み比べ
+- `TYPESAFE_API_KEY` を登録していると、TypeSafe AI の判断モデル **Jev** が審査役として採点します。
+  - 観点ごとの点数（1〜5）: 正確さ、日本語の自然さ、業務への有用性、見出しの分かりやすさ
+  - 元記事にない内容を含んでいる確率
+  - 総合でどちらが優れているかの確率（モデル名を伏せて記事A・Bとして渡し、順番を入れ替えて2回判定した平均）
+  - Jev は文章を返さず理由は出ないので、気になる判定はレポート内の記事を読んで確認してください
 - 記事の公開・コミット・`data/seen.json` の更新は行いません。何度でも試せます。
 - どちらを使うか決めたら、Variables の `LLM_PROVIDER` に `claude` か `gemini` を設定してください。
 
@@ -134,7 +141,7 @@ npm run generate:dry
 npm run compare
 ```
 
-`compare-output/` に比較レポート（Markdown）を出力します（両方の API キーが必要です）。
+`compare-output/` に比較レポート（Markdown）を出力します（両方の API キーが必要です。`.env` に `TYPESAFE_API_KEY` があれば Jev の審査も行います）。
 
 ### サイトの確認
 
@@ -167,6 +174,7 @@ scripts/generate.ts                記事生成のエントリポイント
 scripts/check-feeds.ts             フィード確認ツール
 scripts/lib/                       RSS取得・プロンプト・Markdown出力・比較レポート・seen管理
 scripts/lib/llm/                   Claude / Gemini の呼び出しとJSONの検証・リトライ
+scripts/lib/judge.ts               比較モードの審査（Jev）
 sources.json                       取得元RSSの一覧
 data/seen.json                     処理済みURL
 src/content/posts/                 記事（Markdown）

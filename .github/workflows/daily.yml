@@ -59,6 +59,9 @@ jobs:
           LLM_PROVIDER: ${{ (inputs.provider && inputs.provider != 'auto') && inputs.provider || vars.LLM_PROVIDER }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # 比較モードの審査役（Jev）。未設定なら審査なしで比較する
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          TYPESAFE_DEFAULT_MODEL: ${{ vars.TYPESAFE_DEFAULT_MODEL }}
           # Settings > Secrets and variables > Actions > Variables で上書き可能
           # （未設定なら claude-haiku-4-5 / gemini-2.5-flash-lite）
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}

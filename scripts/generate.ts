@@ -10,6 +10,7 @@ import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { renderCompareReport, type CompareArticle, type CompareSelection } from './lib/compare.ts';
+import { createJudge } from './lib/judge.ts';
 import { fetchArticleText, fetchFeed, loadSources, matchesKeywords, normalizeUrl, type FeedItem } from './lib/feeds.ts';
 import { createProvider, isFatalApiError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
 import { callJson, getStats } from './lib/llm/json.ts';
@@ -200,6 +201,10 @@ async function runNormal(provider: LlmProvider, candidates: FeedItem[], maxArtic
  * 同じ材料（本文）で両方のモデルに記事化させる。記事ファイル・seen.json は書かず、レポートだけを出力する。
  */
 async function runCompare(providers: LlmProvider[], candidates: FeedItem[], maxArticles: number, now: Date) {
+  // TYPESAFE_API_KEY があれば Jev に審査させる（なければ審査なしで比較する）
+  const judge = createJudge();
+  console.log(judge ? `審査: Jev（${judge.model}）` : '審査: なし（TYPESAFE_API_KEY が未設定）');
+
   const selections: CompareSelection[] = [];
   for (const provider of providers) {
     try {
@@ -229,10 +234,17 @@ async function runCompare(providers: LlmProvider[], candidates: FeedItem[], maxA
         results.push({ provider, error: errorMessage(err) });
       }
     }
-    articles.push({ item, selectedBy: selections.filter((s) => s.picks.some((p) => p.id === pick.id)).map((s) => s.provider.name), results });
+    const drafts = Object.fromEntries(results.filter((r) => r.draft).map((r) => [r.provider.name, r.draft!]));
+    const judged = judge && Object.keys(drafts).length > 0 ? await judge.judge(item, body, drafts) : undefined;
+    articles.push({
+      item,
+      selectedBy: selections.filter((s) => s.picks.some((p) => p.id === pick.id)).map((s) => s.provider.name),
+      results,
+      judge: judged,
+    });
   }
 
-  const report = renderCompareReport({ now, candidates, selections, articles, providers });
+  const report = renderCompareReport({ now, candidates, selections, articles, providers, judge });
   await mkdir(COMPARE_DIR, { recursive: true });
   const { ymd, iso } = jstParts(now);
   const fileName = `compare-${ymd}-${iso.slice(11, 16).replace(':', '')}.md`;

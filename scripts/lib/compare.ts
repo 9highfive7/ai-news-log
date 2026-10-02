@@ -1,4 +1,5 @@
 import type { FeedItem } from './feeds.ts';
+import { CRITERIA, estimateJudgeCostUsd, type Judge, type JudgeResult } from './judge.ts';
 import { estimateCostUsd, type LlmProvider, type ProviderName } from './llm/index.ts';
 import { getStats } from './llm/json.ts';
 import { articleTitle, jstParts, renderArticleBody } from './markdown.ts';
@@ -15,6 +16,8 @@ export interface CompareArticle {
   /** このニュースを選別で選んだモデル */
   selectedBy: ProviderName[];
   results: { provider: LlmProvider; draft?: ArticleDraft; error?: string }[];
+  /** Jev による審査結果（審査なしの場合は undefined） */
+  judge?: JudgeResult;
 }
 
 const DISPLAY_NAME: Record<ProviderName, string> = { claude: 'Claude', gemini: 'Gemini' };
@@ -29,8 +32,9 @@ export function renderCompareReport(opts: {
   selections: CompareSelection[];
   articles: CompareArticle[];
   providers: LlmProvider[];
+  judge: Judge | null;
 }): string {
-  const { now, candidates, selections, articles, providers } = opts;
+  const { now, candidates, selections, articles, providers, judge } = opts;
   const out: string[] = [];
   const { ymd, iso } = jstParts(now);
 
@@ -61,6 +65,8 @@ export function renderCompareReport(opts: {
   row('応答時間の合計', (p) => `${(getStats(p).elapsedMs / 1000).toFixed(1)}秒`);
   out.push('', '※ 費用は scripts/lib/llm/index.ts に登録した単価による概算です。', '');
 
+  if (judge) out.push(...renderJudgeSummary(judge, articles, providers));
+
   // 選別
   out.push('## 選別結果（重要度順）', '');
   out.push(`| 順位 | ${providers.map(label).join(' | ')} |`);
@@ -85,6 +91,7 @@ export function renderCompareReport(opts: {
     const by = a.selectedBy.map((n) => DISPLAY_NAME[n]).join('・') || 'なし';
     out.push(`### ${i + 1}. ${a.item.title}`, '');
     out.push(`出典: [${a.item.sourceName}](<${a.item.url}>) ／ 選別で選んだモデル: ${by}`, '');
+    if (a.judge) out.push(...renderJudgeArticle(a.judge, providers));
     for (const r of a.results) {
       out.push(`#### ${label(r.provider)}`, '');
       if (!r.draft) {
@@ -100,4 +107,73 @@ export function renderCompareReport(opts: {
   });
 
   return out.join('\n');
+}
+
+const pct = (p: number) => `${Math.round(p * 100)}%`;
+const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN);
+const fmt = (n: number) => (Number.isNaN(n) ? '-' : n.toFixed(2));
+
+/** Jev による審査の全体集計 */
+function renderJudgeSummary(judge: Judge, articles: CompareArticle[], providers: LlmProvider[]): string[] {
+  const out: string[] = ['## Jev による審査', ''];
+  out.push(
+    `TypeSafe AI の判断モデル Jev（${judge.model}）に、元記事と生成記事を渡して採点させました。`,
+    'モデル名は伏せています。総合の勝ち確率は、記事A・Bの順番を入れ替えて2回判定した平均です。',
+    'Jev は理由を出さないため、気になる判定は下の記事を読んで確認してください。',
+    '',
+  );
+  const judged = articles.filter((a) => a.judge && !a.judge.error);
+  out.push(`| 項目 | ${providers.map(label).join(' | ')} |`);
+  out.push(`| --- | ${providers.map(() => '---:').join(' | ')} |`);
+  for (const c of CRITERIA) {
+    const cells = providers.map((p) => fmt(avg(judged.flatMap((a) => a.judge!.byProvider[p.name]?.scores[c.key] ?? []))));
+    out.push(`| ${c.label}（1〜5、平均） | ${cells.join(' | ')} |`);
+  }
+  const unsupported = providers.map((p) => {
+    const v = avg(judged.flatMap((a) => a.judge!.byProvider[p.name]?.unsupported ?? []));
+    return Number.isNaN(v) ? '-' : pct(v);
+  });
+  out.push(`| 元記事にない内容を含む確率（平均、低いほどよい） | ${unsupported.join(' | ')} |`);
+  const pairs = judged.filter((a) => a.judge!.preference);
+  const winRate = providers.map((p) => {
+    const v = avg(pairs.map((a) => a.judge!.preference!.win[p.name] ?? 0));
+    return Number.isNaN(v) ? '-' : pct(v);
+  });
+  out.push(`| 総合で優れている確率（平均） | ${winRate.join(' | ')} |`);
+  const wins = providers.map((p) => {
+    const n = pairs.filter((a) => {
+      const w = a.judge!.preference!.win;
+      return providers.every((q) => q === p || (w[p.name] ?? 0) > (w[q.name] ?? 0)) && (w[p.name] ?? 0) > a.judge!.preference!.tie;
+    }).length;
+    return `${n} / ${pairs.length}`;
+  });
+  out.push(`| 勝ったニュースの数 | ${wins.join(' | ')} |`);
+  const tie = avg(pairs.map((a) => a.judge!.preference!.tie));
+  out.push('');
+  if (!Number.isNaN(tie)) out.push(`「同程度」と判定された確率の平均: ${pct(tie)}`, '');
+  const cost = estimateJudgeCostUsd(judge.stats);
+  out.push(`審査の呼び出し ${judge.stats.calls} 回 ／ 入力 ${judge.stats.inputTokens.toLocaleString('en-US')} トークン ／ 概算 $${cost.toFixed(4)}`, '');
+  const failed = articles.filter((a) => a.judge?.error);
+  if (judge.disabledReason) out.push(`> ${judge.disabledReason}`, '');
+  else if (failed.length) out.push(`> ${failed.length} 本のニュースで審査に失敗しました（上の集計には含めていません）。`, '');
+  return out;
+}
+
+/** ニュースごとの審査結果 */
+function renderJudgeArticle(result: JudgeResult, providers: LlmProvider[]): string[] {
+  if (result.error) return [`> Jev の審査に失敗しました: ${result.error}`, ''];
+  const out: string[] = [`| Jev の評価 | ${providers.map((p) => DISPLAY_NAME[p.name]).join(' | ')} |`];
+  out.push(`| --- | ${providers.map(() => '---:').join(' | ')} |`);
+  for (const c of CRITERIA) {
+    out.push(`| ${c.label} | ${providers.map((p) => fmt(result.byProvider[p.name]?.scores[c.key] ?? NaN)).join(' | ')} |`);
+  }
+  out.push(
+    `| 元記事にない内容を含む確率 | ${providers.map((p) => (result.byProvider[p.name] ? pct(result.byProvider[p.name]!.unsupported) : '-')).join(' | ')} |`,
+  );
+  if (result.preference) {
+    out.push(`| 総合で優れている確率 | ${providers.map((p) => pct(result.preference!.win[p.name] ?? 0)).join(' | ')} |`);
+    out.push('', `（同程度: ${pct(result.preference.tie)}）`);
+  }
+  out.push('');
+  return out;
 }
