@@ -5,9 +5,10 @@
  *   npm run generate:dry                     # dry-run（記事ファイルの出力のみ。seen.json は更新しない）
  *   npm run generate:dry -- --provider=gemini  # 使うモデルを指定（claude / gemini / openai。省略時は LLM_PROVIDER、なければ claude）
  *   TARGET_URL=<記事URL> npm run generate     # 指定した1本だけを記事化（選別なし。処理済み・期間外でも対象）
+ *   SINCE=2026-09-25 npm run generate         # さかのぼり収集: 指定日以降のニュースを公開日ごとに選別・記事化（既存記事の前日まで）
  *   npm run compare                          # 比較モード（同じニュースを全モデルで記事化し、レポートだけを出力）
  */
-import { appendFile, mkdir, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { renderCompareReport, type CompareArticle, type CompareSelection } from './lib/compare.ts';
@@ -74,6 +75,20 @@ async function main() {
     return;
   }
 
+  // 過去にさかのぼって収集する（初回公開時の記事数を増やす用）
+  const since = process.env.SINCE?.trim();
+  if (since) {
+    if (mode === 'compare') throw new Error('SINCE は比較モードでは使えません');
+    const written = await runBackfill(providers[0], since, maxArticles, seen, dryRun, today);
+    const stats = getStats(providers[0]);
+    console.log(
+      `完了: ${written}本の記事を出力しました${dryRun ? '（dry-run: seen.json は更新していません）' : ''}` +
+        `（呼び出し${stats.calls}回 / 出し直し${stats.retries}回 / 入力${stats.inputTokens}・出力${stats.outputTokens}トークン）`,
+    );
+    await setOutput('count', String(written));
+    return;
+  }
+
   const candidates = await collectCandidates(now, seen.urls);
   if (candidates.length === 0) {
     console.log('新しい候補がないため終了します。');
@@ -126,11 +141,14 @@ function parseMode(): Mode {
   throw new Error(`provider の指定が不正です: ${value}（claude / gemini / openai / compare のいずれか）`);
 }
 
-/** RSSを集めて、期間・キーワード・処理済みで絞った候補を返す（1つのフィードが失敗しても全体は止めない） */
-async function collectCandidates(now: Date, seenUrls: Record<string, string>): Promise<FeedItem[]> {
+/**
+ * RSSを集めて、期間・キーワード・処理済みで絞った候補を返す（1つのフィードが失敗しても全体は止めない）。
+ * from を指定すると maxAgeHours の代わりにその時刻以降を対象にし、件数の上限もかけない（さかのぼり収集用）
+ */
+async function collectCandidates(now: Date, seenUrls: Record<string, string>, from?: Date): Promise<FeedItem[]> {
   const config = await loadSources(SOURCES_PATH);
   const results = await Promise.all(config.sources.map(fetchFeed));
-  const cutoff = now.getTime() - config.maxAgeHours * 60 * 60 * 1000;
+  const cutoff = from ? from.getTime() : now.getTime() - config.maxAgeHours * 60 * 60 * 1000;
 
   const byUrl = new Map<string, FeedItem>();
   const titles = new Set<string>();
@@ -155,16 +173,16 @@ async function collectCandidates(now: Date, seenUrls: Record<string, string>): P
 
   const candidates = [...byUrl.values()]
     .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
-    .slice(0, MAX_CANDIDATES);
+    .slice(0, from ? undefined : MAX_CANDIDATES);
   console.log(`フィード ${results.filter((r) => r.ok).length}/${results.length} 件取得成功、候補 ${candidates.length} 件`);
   return candidates;
 }
 
-async function selectNews(provider: LlmProvider, candidates: FeedItem[], maxArticles: number): Promise<Pick[]> {
+async function selectNews(provider: LlmProvider, candidates: FeedItem[], maxArticles: number, published: string[] = []): Promise<Pick[]> {
   const selection = await callJson(provider, {
     label: '選別',
     system: SELECT_SYSTEM,
-    prompt: buildSelectPrompt(candidates, maxArticles),
+    prompt: buildSelectPrompt(candidates, maxArticles, published),
     schema: SelectionSchema,
     maxTokens: 2000,
     extraCheck: (s) => {
@@ -253,6 +271,96 @@ async function runTarget(provider: LlmProvider, targetUrl: string, now: Date, to
   await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, now));
   console.log(`  → src/content/posts/${fileName}`);
   return 1;
+}
+
+/**
+ * さかのぼり収集: since（YYYY-MM-DD、日本時間）以降に公開されたニュースを公開日ごとに分け、
+ * 日ごとに最大 maxArticles 本を選別・記事化する。記事の日付はニュースの公開日にする。
+ * 対象は「既存記事のいちばん古い日の前日」まで（それ以降は通常の毎日の収集に任せる）。
+ * すでに載せた記事と同じ出来事は選ばないよう、既存の見出しを選別に渡す。
+ */
+async function runBackfill(
+  provider: LlmProvider,
+  since: string,
+  maxArticles: number,
+  seen: Awaited<ReturnType<typeof loadSeen>>,
+  dryRun: boolean,
+  today: string,
+): Promise<number> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) throw new Error(`SINCE は YYYY-MM-DD の形式で指定してください: ${since}`);
+  const existing = await existingPosts();
+  const oldest = existing.map((p) => p.ymd).sort()[0];
+  const until = oldest ? addDays(oldest, -1) : addDays(today, -1);
+  if (since > until) {
+    console.log(`さかのぼる期間がありません（${since} 〜 ${until}）`);
+    return 0;
+  }
+  console.log(`さかのぼり収集: ${since} 〜 ${until}（日本時間の公開日ごとに最大${maxArticles}本）`);
+
+  const candidates = await collectCandidates(new Date(), seen.urls, new Date(`${since}T00:00:00+09:00`));
+  const byDay = new Map<string, FeedItem[]>();
+  for (const item of candidates) {
+    const ymd = jstParts(item.publishedAt).ymd;
+    if (ymd > until) continue;
+    byDay.set(ymd, [...(byDay.get(ymd) ?? []), item]);
+  }
+
+  const published = existing.map((p) => p.title);
+  await mkdir(POSTS_DIR, { recursive: true });
+  const usedNames = new Set<string>();
+  let written = 0;
+  for (let ymd = since; ymd <= until; ymd = addDays(ymd, 1)) {
+    const dayItems = (byDay.get(ymd) ?? []).slice(0, MAX_CANDIDATES);
+    console.log(`\n== ${ymd}: 候補 ${dayItems.length} 件`);
+    if (dayItems.length === 0) continue;
+    // 記事の日時はその日の正午（日本時間）にする。見出しの「M/D」もこの日付になる
+    const dayNow = new Date(`${ymd}T12:00:00+09:00`);
+    const picks = await selectNews(provider, dayItems, maxArticles, published);
+    const failed = new Set<string>();
+    for (const pick of picks) {
+      const item = dayItems[pick.id];
+      const related = relatedItems(pick, dayItems);
+      try {
+        const draft = await writeArticle(provider, item, related, await fetchBody(item));
+        const fileName = uniqueFileName(POSTS_DIR, ymd, sanitizeSlug(draft.slug), usedNames);
+        await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, dayNow));
+        published.push(draft.headline);
+        written++;
+        console.log(`  → src/content/posts/${fileName}`);
+      } catch (err) {
+        if (isFatalApiError(err)) throw err;
+        console.error(`  ✗ 記事化に失敗したためスキップ: ${errorMessage(err)}`);
+        for (const i of [item, ...related]) failed.add(normalizeUrl(i.url));
+      }
+    }
+    // その日の候補は処理済みにする（記事化に失敗したものは除く）
+    for (const item of dayItems) {
+      const key = normalizeUrl(item.url);
+      if (!failed.has(key)) seen.urls[key] = today;
+    }
+  }
+  if (written > 0 && !dryRun) await saveSeen(SEEN_PATH, seen, today);
+  return written;
+}
+
+/** 既存の記事の日付（ファイル名の YYYY-MM-DD）と見出し（先頭の「M/D 」を除く） */
+async function existingPosts(): Promise<{ ymd: string; title: string }[]> {
+  if (!existsSync(POSTS_DIR)) return [];
+  const files = (await readdir(POSTS_DIR)).filter((f) => /^\d{4}-\d{2}-\d{2}-.+\.md$/.test(f));
+  return Promise.all(
+    files.map(async (f) => {
+      const text = await readFile(join(POSTS_DIR, f), 'utf8');
+      const title = text.match(/^title:\s*"?(.*?)"?\s*$/m)?.[1] ?? '';
+      return { ymd: f.slice(0, 10), title: title.replace(/^\d{1,2}\/\d{1,2}\s+/, '') };
+    }),
+  );
+}
+
+/** YYYY-MM-DD に日数を足す */
+function addDays(ymd: string, days: number): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 /**

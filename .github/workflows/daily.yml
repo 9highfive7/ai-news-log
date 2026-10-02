@@ -15,6 +15,10 @@ on:
         description: '（任意）この記事URLだけを記事化する。選別で漏れた重要ニュースの手動追加用。取得元のRSSに載っている記事に限る'
         type: string
         required: false
+      since:
+        description: '（任意）さかのぼり収集の開始日（YYYY-MM-DD）。この日以降に公開されたニュースを公開日ごとに最大5本ずつ記事化する（既存記事のいちばん古い日の前日まで）'
+        type: string
+        required: false
       dry_run:
         description: 'dry-run（記事を生成してアーティファクトに保存するだけ。コミット・デプロイ・seen.json更新なし）'
         type: boolean
@@ -43,7 +47,8 @@ jobs:
   generate:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # さかのぼり収集は日数分の選別・記事化をするので長めに取る
+    timeout-minutes: ${{ inputs.since && 60 || 20 }}
     outputs:
       count: ${{ steps.generate.outputs.count }}
     steps:
@@ -62,6 +67,7 @@ jobs:
           # 定期実行では Variables の LLM_PROVIDER を使う（未設定なら claude）
           LLM_PROVIDER: ${{ (inputs.provider && inputs.provider != 'auto') && inputs.provider || vars.LLM_PROVIDER }}
           TARGET_URL: ${{ inputs.url }}
+          SINCE: ${{ inputs.since }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -112,6 +118,8 @@ jobs:
 
       - name: Commit and push
         if: ${{ !inputs.dry_run && inputs.provider != 'compare' && steps.generate.outputs.count != '0' }}
+        env:
+          SINCE: ${{ inputs.since }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -120,7 +128,11 @@ jobs:
             echo "変更なし"
             exit 0
           fi
-          git commit -m "Add AI news for $(TZ=Asia/Tokyo date +%Y-%m-%d) (${{ steps.generate.outputs.count }} posts)"
+          if [ -n "$SINCE" ]; then
+            git commit -m "Add backfilled AI news since $SINCE (${{ steps.generate.outputs.count }} posts)"
+          else
+            git commit -m "Add AI news for $(TZ=Asia/Tokyo date +%Y-%m-%d) (${{ steps.generate.outputs.count }} posts)"
+          fi
           git push
 
   build:
