@@ -505,6 +505,12 @@ article[data-pagefind-body]::before {
 /* ---------- 記事ページ ---------- */
 
 /* 記事全体を1枚の大きな切り抜きにする。長文なので傾けない */
+/* 記事ページは切り抜き1枚の幅に合わせて中央に置く（右側だけ空くのを防ぐ）。
+   注意書きの付箋・前後の記事のボタンも同じ幅の中に並ぶ */
+main:has(> article[data-pagefind-body]) {
+  max-width: calc(var(--measure) + 96px + 56px);
+}
+
 article[data-pagefind-body] {
   position: relative;
   max-width: calc(var(--measure) + 96px);
@@ -600,11 +606,12 @@ article[data-pagefind-body] {
 }
 
 .post-body > h2:first-child + ul {
-  margin: 0 0 8px;
-  padding: 4px 22px 18px calc(22px + 1.4em);
+  /* 1px 重ねて、傾けたときに境目に細い線が出ないようにする（軸は見出しの下端と同じ点） */
+  margin: -1px 0 8px;
+  padding: 5px 22px 18px calc(22px + 1.4em);
   line-height: 1.8;
   box-shadow: 0 10px 10px -4px rgba(0, 0, 0, 0.15);
-  transform-origin: 50% 0;
+  transform-origin: 50% 1px;
 }
 
 /* AI要約の注意書きは小さな付箋 */

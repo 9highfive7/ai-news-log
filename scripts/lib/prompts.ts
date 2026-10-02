@@ -29,7 +29,8 @@ export const SelectionSchema = z.object({
 });
 export type Selection = z.infer<typeof SelectionSchema>;
 
-export function buildSelectPrompt(items: FeedItem[], maxArticles: number): string {
+/** published: すでにサイトに載せた記事の見出し。同じ出来事を選ばないように渡す */
+export function buildSelectPrompt(items: FeedItem[], maxArticles: number, published: string[] = []): string {
   const list = items.map((item, i) => ({
     id: i,
     source: item.sourceName,
@@ -48,7 +49,7 @@ ${JSON.stringify(list, null, 1)}
 - related_ids に入れるのは「同じ出来事」を報じた記事だけです。同じ企業やテーマでも、別の発表・別の事件はまとめないでください。
 - 選んだ記事同士で話題が重複しないようにしてください。
 - 重要なものが少なければ${maxArticles}本未満で構いません。
-
+${published.length ? `- 次の見出しの記事はすでに掲載済みです。これらと同じ出来事を扱う候補は選ばないでください。\n<published>\n${published.map((t) => `- ${t}`).join('\n')}\n</published>\n` : ''}
 出力形式:
 {"selected": [{"id": 3, "related_ids": [7], "reason": "選んだ理由（短く）"}]}`;
 }
