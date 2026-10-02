@@ -63,7 +63,7 @@ jobs:
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
           TYPESAFE_DEFAULT_MODEL: ${{ vars.TYPESAFE_DEFAULT_MODEL }}
           # Settings > Secrets and variables > Actions > Variables で上書き可能
-          # （未設定なら claude-haiku-4-5 / gemini-2.5-flash-lite）
+          # （未設定なら claude-haiku-4-5 / gemini-3.5-flash-lite）
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           MAX_ARTICLES: ${{ vars.MAX_ARTICLES }}

@@ -24,7 +24,7 @@ export function createProvider(name: ProviderName): LlmProvider {
  */
 const PRICES: Record<string, [number, number]> = {
   'claude-haiku-4-5': [1, 5],
-  'gemini-2.5-flash-lite': [0.1, 0.4],
+  'gemini-3.5-flash-lite': [0.3, 2.5],
 };
 
 export function estimateCostUsd(model: string, inputTokens: number, outputTokens: number): number | null {

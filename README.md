@@ -42,7 +42,7 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 | --- | --- | --- |
 | `LLM_PROVIDER` | 毎日の定期実行で使うモデルの種類（`claude` / `gemini`） | `claude` |
 | `ANTHROPIC_MODEL` | Claude を使うときのモデル | `claude-haiku-4-5` |
-| `GEMINI_MODEL` | Gemini を使うときのモデル | `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL` | Gemini を使うときのモデル | `gemini-3.5-flash-lite` |
 | `MAX_ARTICLES` | 1日に生成する最大本数 | `5` |
 | `TYPESAFE_DEFAULT_MODEL` | 審査に使う Jev のモデル | `jev-latest` |
 

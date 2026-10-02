@@ -1,7 +1,7 @@
 import { FinishReason, GoogleGenAI } from '@google/genai';
 import type { ChatMessage, ChatResult, LlmProvider } from './types.ts';
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
 export function createGeminiProvider(): LlmProvider {
   const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
