@@ -1,6 +1,9 @@
 ---
-import '@fontsource-variable/inter';
-import '@fontsource-variable/noto-sans-jp';
+import '@fontsource/dela-gothic-one/400.css';
+import '@fontsource/shippori-mincho/700.css';
+import '@fontsource/zen-kaku-gothic-new/400.css';
+import '@fontsource/zen-kaku-gothic-new/700.css';
+import '@fontsource/klee-one/600.css';
 import '../styles/global.css';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { url } from '../lib';
@@ -42,7 +45,9 @@ const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
           <a href={url('tags/')}>タグ</a>
           <a href={url('search/')}>検索</a>
           <a href={url('rss.xml')}>RSS</a>
-          <button class="theme-toggle" type="button" aria-label="ライト/ダーク切替" title="ライト/ダーク切替">◐</button>
+          <button class="theme-toggle" type="button" aria-label="ライト/ダーク切替" title="ライト/ダーク切替">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M9 1.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor" /></svg>
+          </button>
         </nav>
       </div>
     </header>

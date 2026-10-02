@@ -25,7 +25,7 @@ const { Content } = await render(post);
       <h1 data-pagefind-ignore data-pagefind-meta={`title:${listTitle(post)}`}>{post.data.title}</h1>
       <div class="meta" data-pagefind-ignore>
         <time datetime={post.data.date.toISOString()}>{formatDateHeading(post.data.date)}</time>
-        <span>出典: <a href={post.data.source_url} rel="noopener" target="_blank">{post.data.source_name}</a></span>
+        <span class="meta__source">出典：<a href={post.data.source_url} rel="noopener" target="_blank">{post.data.source_name}</a></span>
         {
           post.data.tags.map((tag) => (
             <a class={`tag tag--${tagSlug(tag)}`} href={url(`tags/${tagSlug(tag)}/`)} data-pagefind-filter="タグ">

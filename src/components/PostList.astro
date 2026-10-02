@@ -17,7 +17,7 @@ const heroId = withHero ? posts[0]?.id : undefined;
   groups.map((group) => (
     <section class="day" aria-labelledby={`day-${group.key}`}>
       <h2 class="day__heading" id={`day-${group.key}`}>
-        <time datetime={group.key}>{group.heading}</time>
+        <span class="day__label"><time datetime={group.key}>{group.label}</time>の切り抜き</span>
         {/* 件数は「最新ニュース」も含めた、その日の記事数 */}
         <span class="day__count">{group.posts.length}件</span>
       </h2>

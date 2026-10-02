@@ -1,6 +1,6 @@
 ---
 import { tagSlug } from '../consts';
-import { listSummary, listTitle, postUrl, url, type Post } from '../lib';
+import { listPoints, listSummary, listTitle, postUrl, url, type Post } from '../lib';
 
 interface Props {
   post: Post;
@@ -8,16 +8,27 @@ interface Props {
 }
 
 const { post, hero = false } = Astro.props;
+const points = hero ? listPoints(post) : [];
 ---
 
 <article class:list={['card', { 'card--hero': hero }]}>
-  {hero && <p class="card__eyebrow">最新ニュース</p>}
+  {
+    hero && (
+      <p class="card__eyebrow">
+        <span>要チェック</span>
+        {/* 赤ペンで手描きした丸（少しゆがんだ楕円） */}
+        <svg class="card__circle" viewBox="0 0 120 44" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M14 9C35 1 92 0 111 12c13 9 2 24-25 28-27 4-66 3-80-7C-4 26 3 14 22 8c10-3 22-4 34-4" />
+        </svg>
+      </p>
+    )
+  }
   <h3 class="card__title">
     <a href={postUrl(post)}>{listTitle(post)}</a>
   </h3>
   <p class="card__excerpt">{listSummary(post)}</p>
   <div class="card__meta">
-    <span class="card__source">{post.data.source_name}</span>
+    <span class="card__source">出典：{post.data.source_name}</span>
     <span class="card__tags">
       {
         post.data.tags.map((tag) => (
@@ -28,4 +39,16 @@ const { post, hero = false } = Astro.props;
       }
     </span>
   </div>
+  {
+    points.length > 0 && (
+      <aside class="card__points" aria-label="ポイント">
+        <p class="card__points-title">ポイント</p>
+        <ul>
+          {points.map((point) => (
+            <li>{point}</li>
+          ))}
+        </ul>
+      </aside>
+    )
+  }
 </article>

@@ -15,7 +15,7 @@ const { page } = Astro.props;
 
 <BaseLayout title={page.currentPage > 1 ? `${page.currentPage}ページ目` : undefined}>
   <section class="intro">
-    <h1 class="intro__title">AIニュースログ</h1>
+    <h1 class="intro__title visually-hidden">AIニュースログ</h1>
     <p class="intro__lead">{SITE_DESCRIPTION}</p>
   </section>
   {page.data.length === 0 ? <p>まだ記事がありません。</p> : <PostList posts={page.data} withHero={page.currentPage === 1} />}
