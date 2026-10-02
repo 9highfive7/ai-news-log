@@ -1,5 +1,5 @@
 ---
-title: "9/29 Anthropicが開発支援ツールを更新"
+title: "9/29 Claude CodeがSonnet 5.5を既定モデルに"
 date: 2026-09-29T12:00:00+09:00
 tags: ["Anthropic", "ツール"]
 lead: "Anthropicは、開発支援ツール「Claude Code」の最新バージョンv2.1.284をリリースしました。"
