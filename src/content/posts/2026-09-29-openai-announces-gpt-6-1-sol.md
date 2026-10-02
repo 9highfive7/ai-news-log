@@ -1,5 +1,5 @@
 ---
-title: "9/29 OpenAIが高性能な新モデルを公開"
+title: "9/29 OpenAIが新モデル「GPT-6.1 Sol」を発表"
 date: 2026-09-29T12:00:00+09:00
 tags: ["OpenAI", "ツール"]
 lead: "OpenAIが、高度な専門業務やプログラミングに対応する新しいAIモデル「GPT-6.1 Sol」を発表した。"
