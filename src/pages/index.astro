@@ -1,0 +1,40 @@
+---
+import DayTabs from '../components/DayTabs.astro';
+import PostList from '../components/PostList.astro';
+import WeekNav from '../components/WeekNav.astro';
+import { SITE_DESCRIPTION } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatWeekRange, getPosts, groupByWeek, weekKey } from '../lib';
+
+// トップページはいちばん新しい週（月曜〜日曜）の記事だけを表示する。過去の週は /weeks/<月曜の日付>/
+const weeks = groupByWeek(await getPosts());
+const latest = weeks[0];
+const weekList = weeks.map((w) => ({ key: w.key, count: w.posts.length }));
+const isThisWeek = latest?.key === weekKey(new Date());
+---
+
+<BaseLayout>
+  <section class="intro">
+    <h1 class="intro__title visually-hidden">AIニュースログ</h1>
+    <p class="intro__lead">{SITE_DESCRIPTION}</p>
+  </section>
+  {
+    !latest ? (
+      <p>まだ記事がありません。</p>
+    ) : (
+      <>
+        <div class="week-head">
+          <p class="week-head__label">
+            {isThisWeek ? '今週の切り抜き' : '最新の切り抜き'}
+            <span class="week-head__range">
+              {formatWeekRange(latest.key)}・{latest.posts.length}件
+            </span>
+          </p>
+        </div>
+        <DayTabs posts={latest.posts} />
+        <PostList posts={latest.posts} withHero />
+        <WeekNav weeks={weekList} current={latest.key} withList />
+      </>
+    )
+  }
+</BaseLayout>

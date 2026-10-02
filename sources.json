@@ -6,6 +6,35 @@
       "url": "https://openai.com/news/rss.xml"
     },
     {
+      "name": "Anthropic News",
+      "url": "https://www.anthropic.com/news",
+      "format": "anthropic-news"
+    },
+    {
+      "name": "Google Gemini",
+      "url": "https://blog.google/products/gemini/rss/"
+    },
+    {
+      "name": "Claude Code（GitHubリリース）",
+      "url": "https://github.com/anthropics/claude-code/releases.atom",
+      "titlePrefix": "Claude Code"
+    },
+    {
+      "name": "Anthropic SDK（GitHubリリース）",
+      "url": "https://github.com/anthropics/anthropic-sdk-python/releases.atom",
+      "titlePrefix": "Anthropic Python SDK"
+    },
+    {
+      "name": "OpenAI SDK（GitHubリリース）",
+      "url": "https://github.com/openai/openai-python/releases.atom",
+      "titlePrefix": "OpenAI Python SDK"
+    },
+    {
+      "name": "Gemini SDK（GitHubリリース）",
+      "url": "https://github.com/googleapis/python-genai/releases.atom",
+      "titlePrefix": "Google Gen AI Python SDK"
+    },
+    {
       "name": "Google AI Blog",
       "url": "https://blog.google/technology/ai/rss/"
     },
@@ -102,6 +131,86 @@
     {
       "name": "ITmedia AI+",
       "url": "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml"
+    },
+    {
+      "name": "ITmedia NEWS",
+      "url": "https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "人工知能",
+        "ChatGPT",
+        "OpenAI",
+        "Claude",
+        "Anthropic",
+        "Gemini",
+        "Copilot",
+        "LLM",
+        "GPT",
+        "大規模言語モデル",
+        "機械学習",
+        "エージェント"
+      ]
+    },
+    {
+      "name": "ITmedia NEWS セキュリティ",
+      "url": "https://rss.itmedia.co.jp/rss/2.0/news_security.xml",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "人工知能",
+        "ChatGPT",
+        "OpenAI",
+        "Claude",
+        "Anthropic",
+        "Gemini",
+        "Copilot",
+        "LLM",
+        "GPT",
+        "大規模言語モデル",
+        "機械学習",
+        "エージェント"
+      ]
+    },
+    {
+      "name": "ITmedia エンタープライズ",
+      "url": "https://rss.itmedia.co.jp/rss/2.0/enterprise.xml",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "人工知能",
+        "ChatGPT",
+        "OpenAI",
+        "Claude",
+        "Anthropic",
+        "Gemini",
+        "Copilot",
+        "LLM",
+        "GPT",
+        "大規模言語モデル",
+        "機械学習",
+        "エージェント"
+      ]
+    },
+    {
+      "name": "@IT",
+      "url": "https://rss.itmedia.co.jp/rss/2.0/ait.xml",
+      "keywords": [
+        "AI",
+        "生成AI",
+        "人工知能",
+        "ChatGPT",
+        "OpenAI",
+        "Claude",
+        "Anthropic",
+        "Gemini",
+        "Copilot",
+        "LLM",
+        "GPT",
+        "大規模言語モデル",
+        "機械学習",
+        "エージェント"
+      ]
     },
     {
       "name": "Publickey",

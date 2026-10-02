@@ -1,0 +1,29 @@
+---
+import { groupByDate, type Post } from '../lib';
+
+interface Props {
+  posts: Post[];
+}
+
+// スマホで画面上部に固定する日付の付箋インデックス（押すとその日の見出しへ移動）。PCでは表示しない
+const days = groupByDate(Astro.props.posts);
+---
+
+{
+  days.length > 1 && (
+    <nav class="day-tabs" aria-label="日付へ移動">
+      <ul>
+        {days.map((d) => (
+          <li>
+            <a href={`#day-${d.key}`}>
+              {Number(d.key.slice(5, 7))}/{Number(d.key.slice(8))}
+              <span class="day-tabs__sub">
+                {d.label.match(/（(.)）/)?.[1]}・{d.posts.length}件
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}

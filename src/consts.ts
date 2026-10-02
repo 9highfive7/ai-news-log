@@ -12,6 +12,7 @@ export const TAGS = [
   { name: '規制・政策', slug: 'policy' },
   { name: '研究', slug: 'research' },
   { name: 'ツール', slug: 'tools' },
+  { name: 'セキュリティ', slug: 'security' },
   { name: 'その他', slug: 'other' },
 ] as const;
 

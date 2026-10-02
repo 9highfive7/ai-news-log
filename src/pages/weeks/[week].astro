@@ -1,0 +1,29 @@
+---
+import type { GetStaticPaths } from 'astro';
+import DayTabs from '../../components/DayTabs.astro';
+import PostList from '../../components/PostList.astro';
+import WeekNav from '../../components/WeekNav.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { formatWeekRange, getPosts, groupByWeek } from '../../lib';
+
+export const getStaticPaths = (async () => {
+  const weeks = groupByWeek(await getPosts());
+  const weekList = weeks.map((w) => ({ key: w.key, count: w.posts.length }));
+  return weeks.map((w) => ({ params: { week: w.key }, props: { week: w, weekList } }));
+}) satisfies GetStaticPaths;
+
+const { week, weekList } = Astro.props;
+const range = formatWeekRange(week.key);
+---
+
+<BaseLayout title={`${range}の切り抜き`}>
+  <div class="week-head">
+    <h1 class="week-head__label">
+      {range}の切り抜き<span class="week-head__range">{week.posts.length}件</span>
+    </h1>
+    <WeekNav weeks={weekList} current={week.key} />
+  </div>
+  <DayTabs posts={week.posts} />
+  <PostList posts={week.posts} />
+  <WeekNav weeks={weekList} current={week.key} withList />
+</BaseLayout>

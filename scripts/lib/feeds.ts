@@ -8,6 +8,13 @@ export interface Source {
   enabled?: boolean;
   /** AI専門ではないフィード用。タイトルか概要にどれかを含む記事だけを候補にする */
   keywords?: string[];
+  /**
+   * 取得形式。省略時は RSS/Atom。
+   * anthropic-news: RSS のない anthropic.com/news の一覧ページから記事リンク・日付・見出しを読み取る
+   */
+  format?: 'rss' | 'anthropic-news';
+  /** 見出しの先頭に付ける語（GitHub のリリースのように見出しがバージョン番号だけのフィード用） */
+  titlePrefix?: string;
 }
 
 export interface SourcesConfig {
@@ -57,6 +64,12 @@ export async function fetchText(url: string, accept: string): Promise<string> {
 /** 1つのフィードを取得する。失敗しても例外は投げず ok:false を返す */
 export async function fetchFeed(source: Source): Promise<FeedResult> {
   try {
+    if (source.format === 'anthropic-news') {
+      const items = parseAnthropicNews(await fetchText(source.url, 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'), source);
+      // ページの作りが変わって読み取れなくなったときに気づけるよう、0件は失敗として扱う
+      if (items.length === 0) throw new Error('一覧ページから記事を読み取れませんでした（ページの構成が変わった可能性があります）');
+      return { source, ok: true, items, total: items.length };
+    }
     const xml = await fetchText(source.url, 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8');
     const feed = await parser.parseString(xml);
     const items: FeedItem[] = [];
@@ -68,12 +81,44 @@ export async function fetchFeed(source: Source): Promise<FeedResult> {
       const publishedAt = new Date(dateStr);
       if (Number.isNaN(publishedAt.getTime())) continue;
       const summary = stripHtml(entry.contentSnippet ?? entry.summary ?? entry.content ?? '').slice(0, 600);
-      items.push({ sourceName: source.name, title: stripHtml(title), url, publishedAt, summary });
+      const plainTitle = stripHtml(title);
+      items.push({ sourceName: source.name, title: source.titlePrefix ? `${source.titlePrefix} ${plainTitle}` : plainTitle, url, publishedAt, summary });
     }
     return { source, ok: true, items, total: items.length };
   } catch (err) {
     return { source, ok: false, items: [], total: 0, error: err instanceof Error ? err.message : String(err) };
   }
+}
+
+const MONTHS: Record<string, number> = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+
+/**
+ * anthropic.com/news の一覧ページから記事を読み取る。
+ * 各記事は <a href="/news/..."> の中に <time>（例: Oct 2, 2026）と見出しを持つ。
+ * 時刻は分からないので、その日の 12:00 UTC（日本時間 21:00）とする
+ */
+export function parseAnthropicNews(html: string, source: Source): FeedItem[] {
+  const items: FeedItem[] = [];
+  const seen = new Set<string>();
+  for (const m of html.matchAll(/<a\b[^>]*href="((?:https:\/\/www\.anthropic\.com)?\/news\/[a-z0-9-]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = new URL(m[1], 'https://www.anthropic.com').toString();
+    if (seen.has(url)) continue;
+    const inner = m[2];
+    const date = inner.match(/<time\b[^>]*>\s*([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2}),\s*(\d{4})\s*<\/time>/);
+    if (!date) continue;
+    const month = MONTHS[date[1].toLowerCase()];
+    if (month === undefined) continue;
+    const publishedAt = new Date(Date.UTC(Number(date[3]), month, Number(date[2]), 12));
+    // 見出しは class に title を含む要素。なければ日付・分類以外でいちばん長いテキスト
+    const titleHtml = inner.match(/<(span|h[1-6]|p|div)\b[^>]*class="[^"]*title[^"]*"[^>]*>([\s\S]*?)<\/\1>/i)?.[2];
+    const texts = inner.replace(/<time\b[\s\S]*?<\/time>/gi, '|').split(/<[^>]+>/).map((t) => stripHtml(t)).filter(Boolean);
+    const title = titleHtml ? stripHtml(titleHtml) : texts.sort((a, b) => b.length - a.length)[0];
+    if (!title) continue;
+    const category = inner.match(/<span\b[^>]*class="[^"]*subject[^"]*"[^>]*>([\s\S]*?)<\/span>/i)?.[1];
+    seen.add(url);
+    items.push({ sourceName: source.name, title, url, publishedAt, summary: category ? `Anthropic公式（${stripHtml(category)}）` : '' });
+  }
+  return items;
 }
 
 export function matchesKeywords(item: FeedItem, keywords?: string[]): boolean {
