@@ -5,6 +5,7 @@ tags: ["OpenAI", "ツール"]
 lead: "OpenAIの新型AIモデルが、複雑な税務関連のワークブック処理において前世代モデルの2倍という驚異的な高速化を達成しました。"
 source_name: "OpenAI News"
 source_url: "https://openai.com/index/basis-tax-workbook-with-astra"
+rank: 1
 ---
 
 ## ポイント

@@ -5,6 +5,7 @@ tags: ["その他", "ツール"]
 lead: "音声AIを手がけるElevenLabsが株式公開買付を実施し、企業評価額が前回から倍増となる220億ドルに達した。"
 source_name: "TechCrunch AI"
 source_url: "https://techcrunch.com/2026/09/30/ai-voice-startup-elevenlabs-doubles-valuation-to-22b/"
+rank: 6
 ---
 
 ## ポイント

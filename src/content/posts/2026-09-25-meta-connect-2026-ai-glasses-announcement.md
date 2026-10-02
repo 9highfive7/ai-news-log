@@ -5,6 +5,7 @@ tags: ["Meta", "ツール"]
 lead: "Metaが年次イベント「Connect 2026」を開催し、AIグラス向けエージェント「Muse」や新型VRグラスなどを発表しました。"
 source_name: "Meta Newsroom"
 source_url: "https://about.fb.com/news/2026/09/the-biggest-news-from-connect-2026/"
+rank: 3
 ---
 
 ## ポイント

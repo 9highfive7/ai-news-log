@@ -1,0 +1,23 @@
+{
+  "note": "既存記事の見直し（2026-10-03）で決めた追加・書き直し。npm run generate を PLAN_FILE=このファイル で実行して反映する",
+  "entries": [
+    { "url": "https://www.itmedia.co.jp/enterprise/articles/2609/25/news050.html", "date": "2026-09-25", "rank": 4 },
+    { "url": "https://www.itmedia.co.jp/enterprise/articles/2609/27/news006.html", "date": "2026-09-27", "rank": 1 },
+    { "url": "https://www.itmedia.co.jp/enterprise/articles/2609/28/news035.html", "date": "2026-09-28", "rank": 3 },
+    {
+      "title": "DevDay 2026 Recap",
+      "source": "OpenAI News",
+      "date": "2026-09-29",
+      "rank": 1,
+      "relatedKeyword": "DevDay",
+      "replace": "2026-09-29-openai-devday-2026-recap.md"
+    },
+    { "title": "Introducing GPT-6.1 Sol", "source": "OpenAI News", "date": "2026-09-29", "rank": 2 },
+    { "url": "https://github.com/anthropics/claude-code/releases/tag/v2.1.284", "date": "2026-09-29", "rank": 3 },
+    { "url": "https://atmarkit.itmedia.co.jp/ait/articles/2609/29/news036.html", "date": "2026-09-29", "rank": 4 },
+    { "url": "https://www.itmedia.co.jp/enterprise/articles/2609/29/news035.html", "date": "2026-09-30", "rank": 2 },
+    { "url": "https://the-decoder.com/anthropic-brings-claude-to-civilian-agencies-as-its-fight-with-the-pentagon-drags-on/", "date": "2026-10-01", "rank": 1 },
+    { "url": "https://www.itmedia.co.jp/enterprise/articles/2610/01/news030.html", "date": "2026-10-01", "rank": 3 },
+    { "url": "https://www.itmedia.co.jp/news/article/2610/02/2000001950/", "date": "2026-10-02", "rank": 3 }
+  ]
+}

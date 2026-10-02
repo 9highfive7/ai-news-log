@@ -5,6 +5,7 @@ tags: ["OpenAI", "ツール"]
 lead: "ProactionがOpenAIのCodexや最新モデルを活用し、フリート管理システムの開発や販売業務を大幅に効率化しました。"
 source_name: "OpenAI News"
 source_url: "https://openai.com/index/proaction"
+rank: 1
 ---
 
 ## ポイント

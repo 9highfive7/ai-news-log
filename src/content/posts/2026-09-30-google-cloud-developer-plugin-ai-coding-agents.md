@@ -5,6 +5,7 @@ tags: ["Google", "ツール"]
 lead: "同社は、AIプログラミング支援ツールに専門知識と外部ツールを一括で組み込める専用プラグインを公開した。"
 source_name: "Publickey"
 source_url: "https://www.publickey1.jp/blog/26/google_cloudgoogle_cloud_developer_plugin_for_ai_coding_agents.html"
+rank: 3
 ---
 
 ## ポイント

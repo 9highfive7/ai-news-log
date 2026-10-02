@@ -5,6 +5,7 @@ tags: ["OpenAI", "ツール"]
 lead: "OpenAIが、複雑なプロジェクトや日常業務を自律的に継続して進める新しいプロアクティブ型AIアシスタントを発表しました。"
 source_name: "OpenAI News"
 source_url: "https://openai.com/index/introducing-dots"
+rank: 5
 ---
 
 ## ポイント

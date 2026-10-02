@@ -4,6 +4,7 @@ date: 2026-10-02T12:01:32+09:00
 tags: ["ツール", "研究", "その他"]
 source_name: "GIGAZINE"
 source_url: "https://gigazine.net/news/20261001-deepseek-huawei-ascend/"
+rank: 5
 ---
 
 ## ポイント

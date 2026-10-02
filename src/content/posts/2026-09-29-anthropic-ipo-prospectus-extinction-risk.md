@@ -5,6 +5,7 @@ tags: ["Anthropic", "規制・政策"]
 lead: "Anthropicが上場申請書類の中で、AIモデルが引き起こす可能性のある甚大なリスクについて投資家へ注意を促しました。"
 source_name: "Ars Technica AI"
 source_url: "https://arstechnica.com/ai/2026/09/anthropics-ipo-pitch-includes-a-warning-about-human-extinction/"
+rank: 8
 ---
 
 ## ポイント

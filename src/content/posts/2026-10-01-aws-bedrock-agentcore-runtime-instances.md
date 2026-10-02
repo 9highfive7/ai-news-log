@@ -5,6 +5,7 @@ tags: ["ツール"]
 lead: "AWSは、数日間にわたる長期セッションやGPUを活用した複数AIエージェントの連携実行基盤を発表した。"
 source_name: "AWS Machine Learning Blog"
 source_url: "https://aws.amazon.com/blogs/machine-learning/build-a-multi-agent-music-production-pipeline-on-amazon-bedrock-agentcore-runtime-instances/"
+rank: 5
 ---
 
 ## ポイント

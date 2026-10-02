@@ -5,6 +5,7 @@ tags: ["Google", "ツール"]
 lead: "Google Cloudは、AIエージェントによる大量の読み取り処理を本番環境から安全に切り離す新サービスを発表した。"
 source_name: "Publickey"
 source_url: "https://www.publickey1.jp/blog/26/google_cloudaipostgresqldbpostgresql_for_agents_in_alloydb.html"
+rank: 4
 ---
 
 ## ポイント

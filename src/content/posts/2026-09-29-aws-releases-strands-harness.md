@@ -5,6 +5,7 @@ tags: ["ツール"]
 lead: "AWSは主要なLLMに対応し、任意の環境へデプロイできるAIエージェントの自作ツールをオープンソースで公開した。"
 source_name: "Publickey"
 source_url: "https://www.publickey1.jp/blog/26/awsaistrandsllm.html"
+rank: 6
 ---
 
 ## ポイント

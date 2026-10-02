@@ -5,6 +5,7 @@ tags: ["OpenAI", "ツール"]
 lead: "OpenAIの新しい「Decisions API」は、AIエージェントの制御や画像分類を高速かつ安価に実行できる判断特化型のモデルです。"
 source_name: "TechCrunch AI"
 source_url: "https://techcrunch.com/2026/09/30/openais-jev-clone-could-help-the-frontier-lab-stop-its-swarming-agents/"
+rank: 2
 ---
 
 ## ポイント
