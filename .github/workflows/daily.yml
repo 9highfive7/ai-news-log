@@ -11,6 +11,10 @@ on:
         type: choice
         options: [auto, claude, gemini, openai, compare]
         default: auto
+      url:
+        description: '（任意）この記事URLだけを記事化する。選別で漏れた重要ニュースの手動追加用。取得元のRSSに載っている記事に限る'
+        type: string
+        required: false
       dry_run:
         description: 'dry-run（記事を生成してアーティファクトに保存するだけ。コミット・デプロイ・seen.json更新なし）'
         type: boolean
@@ -57,6 +61,7 @@ jobs:
         env:
           # 定期実行では Variables の LLM_PROVIDER を使う（未設定なら claude）
           LLM_PROVIDER: ${{ (inputs.provider && inputs.provider != 'auto') && inputs.provider || vars.LLM_PROVIDER }}
+          TARGET_URL: ${{ inputs.url }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

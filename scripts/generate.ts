@@ -4,6 +4,7 @@
  *   npm run generate                         # 本番（data/seen.json も更新）
  *   npm run generate:dry                     # dry-run（記事ファイルの出力のみ。seen.json は更新しない）
  *   npm run generate:dry -- --provider=gemini  # 使うモデルを指定（claude / gemini / openai。省略時は LLM_PROVIDER、なければ claude）
+ *   TARGET_URL=<記事URL> npm run generate     # 指定した1本だけを記事化（選別なし。処理済み・期間外でも対象）
  *   npm run compare                          # 比較モード（同じニュースを全モデルで記事化し、レポートだけを出力）
  */
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
@@ -58,6 +59,21 @@ async function main() {
   );
 
   const seen = await loadSeen(SEEN_PATH);
+
+  // 指定した1本だけを記事化する（選別で漏れた重要ニュースの手動追加用）
+  const targetUrl = process.env.TARGET_URL?.trim();
+  if (targetUrl) {
+    if (mode === 'compare') throw new Error('TARGET_URL は比較モードでは使えません');
+    const written = await runTarget(providers[0], targetUrl, now, today);
+    if (!dryRun) {
+      seen.urls[normalizeUrl(targetUrl)] = today;
+      await saveSeen(SEEN_PATH, seen, today);
+    }
+    console.log(`完了: ${written}本の記事を出力しました`);
+    await setOutput('count', String(written));
+    return;
+  }
+
   const candidates = await collectCandidates(now, seen.urls);
   if (candidates.length === 0) {
     console.log('新しい候補がないため終了します。');
@@ -72,12 +88,18 @@ async function main() {
   }
 
   const provider = providers[0];
-  const written = await runNormal(provider, candidates, maxArticles, now, today);
+  const { written, failed } = await runNormal(provider, candidates, maxArticles, now, today);
 
-  // 処理済みURLの記録（選ばれなかった候補も含めて記録し、翌日に同じ候補を再評価しない）
+  // 処理済みURLの記録（選ばれなかった候補も含めて記録し、翌日に同じ候補を再評価しない）。
+  // ただし選ばれたのに記事化に失敗したニュース（と同じ話題の記事）は記録せず、次回の候補に残す
   if (written > 0 && !dryRun) {
-    for (const item of candidates) seen.urls[normalizeUrl(item.url)] = today;
+    const retry = new Set(failed.map((item) => normalizeUrl(item.url)));
+    for (const item of candidates) {
+      const key = normalizeUrl(item.url);
+      if (!retry.has(key)) seen.urls[key] = today;
+    }
     await saveSeen(SEEN_PATH, seen, today);
+    if (retry.size) console.log(`記事化に失敗した ${failed.length} 件は処理済みにせず、次回の候補に残します`);
   }
 
   const stats = getStats(provider);
@@ -181,16 +203,27 @@ async function fetchBody(item: FeedItem): Promise<string | null> {
   return body;
 }
 
-/** 通常モード: 1つのモデルで選別・記事化して src/content/posts/ に書き出す。書き出した本数を返す */
-async function runNormal(provider: LlmProvider, candidates: FeedItem[], maxArticles: number, now: Date, today: string): Promise<number> {
+/**
+ * 通常モード: 1つのモデルで選別・記事化して src/content/posts/ に書き出す。
+ * 書き出した本数と、記事化に失敗したニュース（同じ話題の記事を含む）を返す
+ */
+async function runNormal(
+  provider: LlmProvider,
+  candidates: FeedItem[],
+  maxArticles: number,
+  now: Date,
+  today: string,
+): Promise<{ written: number; failed: FeedItem[] }> {
   const picks = await selectNews(provider, candidates, maxArticles);
   await mkdir(POSTS_DIR, { recursive: true });
   const usedNames = new Set<string>();
   let written = 0;
+  const failed: FeedItem[] = [];
   for (const pick of picks) {
     const item = candidates[pick.id];
+    const related = relatedItems(pick, candidates);
     try {
-      const draft = await writeArticle(provider, item, relatedItems(pick, candidates), await fetchBody(item));
+      const draft = await writeArticle(provider, item, related, await fetchBody(item));
       const fileName = uniqueFileName(POSTS_DIR, today, sanitizeSlug(draft.slug), usedNames);
       await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, now));
       written++;
@@ -199,10 +232,27 @@ async function runNormal(provider: LlmProvider, candidates: FeedItem[], maxArtic
       // 1本失敗しても残りは続ける（認証エラーなどは全体の失敗として扱う）
       if (isFatalApiError(err)) throw err;
       console.error(`  ✗ 記事化に失敗したためスキップ: ${errorMessage(err)}`);
+      failed.push(item, ...related);
     }
   }
   if (picks.length > 0 && written === 0) throw new Error('選別した記事をすべて記事化できませんでした');
-  return written;
+  return { written, failed };
+}
+
+/** 指定した URL の記事を、RSS から探して1本だけ記事化する（処理済み・期間外でも対象） */
+async function runTarget(provider: LlmProvider, targetUrl: string, now: Date, today: string): Promise<number> {
+  const config = await loadSources(SOURCES_PATH);
+  const results = await Promise.all(config.sources.map(fetchFeed));
+  const key = normalizeUrl(targetUrl);
+  const item = results.flatMap((r) => r.items).find((i) => normalizeUrl(i.url) === key);
+  if (!item) throw new Error(`TARGET_URL の記事が取得元のRSSに見つかりません: ${targetUrl}`);
+  console.log(`指定記事: [${item.sourceName}] ${item.title}`);
+  await mkdir(POSTS_DIR, { recursive: true });
+  const draft = await writeArticle(provider, item, [], await fetchBody(item));
+  const fileName = uniqueFileName(POSTS_DIR, today, sanitizeSlug(draft.slug), new Set());
+  await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, now));
+  console.log(`  → src/content/posts/${fileName}`);
+  return 1;
 }
 
 /**
