@@ -1,0 +1,46 @@
+name: Review posts
+
+# 既存記事を今の選定基準で見直したレポートを作る（記事・サイト・seen.json は変更しない）
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: '（任意）見直す期間の開始日（YYYY-MM-DD）。省略時はいちばん古い記事の日'
+        type: string
+        required: false
+      until:
+        description: '（任意）見直す期間の終了日（YYYY-MM-DD）。省略時はいちばん新しい記事の日'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run review
+        env:
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
+          SINCE: ${{ inputs.since }}
+          UNTIL: ${{ inputs.until }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: review-report
+          path: review-output/
+          if-no-files-found: ignore
