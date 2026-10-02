@@ -1,0 +1,56 @@
+---
+import { formatWeekRange, url, weekUrl } from '../lib';
+
+interface Props {
+  /** すべての週（新しい順）と記事数 */
+  weeks: { key: string; count: number }[];
+  current: string;
+  /** 一覧（週の目次）も出すか */
+  withList?: boolean;
+}
+
+const { weeks, current, withList = false } = Astro.props;
+const i = weeks.findIndex((w) => w.key === current);
+const newer = weeks[i - 1];
+const older = weeks[i + 1];
+// いちばん新しい週はトップページで表示する
+const href = (key: string) => (key === weeks[0].key ? url() : weekUrl(key));
+---
+
+<nav class="week-nav" aria-label="週の切り替え">
+  <span>
+    {
+      older && (
+        <a href={href(older.key)}>
+          ← 前の週<span class="week-nav__range">{formatWeekRange(older.key)}</span>
+        </a>
+      )
+    }
+  </span>
+  <span>
+    {
+      newer && (
+        <a href={href(newer.key)}>
+          次の週 →<span class="week-nav__range">{formatWeekRange(newer.key)}</span>
+        </a>
+      )
+    }
+  </span>
+</nav>
+{
+  withList && (
+    <nav class="week-list" aria-label="週の一覧">
+      <p class="week-list__title">これまでの週</p>
+      <ul>
+        {weeks.map((w) => (
+          <li>
+            <a href={href(w.key)} aria-current={w.key === current ? 'page' : undefined}>
+              {formatWeekRange(w.key)}
+              <span class="week-list__count">{w.count}件</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}

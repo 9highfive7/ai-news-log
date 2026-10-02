@@ -12,6 +12,7 @@ GitHub Pages で公開します（`https://9highfive7.github.io/ai-news-log/`）
 ```
 GitHub Actions（毎朝7:00 JST / 手動実行）
   generate: RSS取得 → 直近36時間・未処理の記事に絞る → LLMが重要度順に最大5本選ぶ
+            → 直近1週間に掲載済みの話題と同じものを外す
             → 1本ずつ日本語の記事にする → src/content/posts/ に保存 → コミット & push
   build:    astro build → pagefind で検索インデックス作成
   deploy:   GitHub Pages にデプロイ
@@ -22,6 +23,17 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 - 1つのフィードの取得に失敗しても、他のフィードで処理を続けます。
 - 選別されたのに記事化に失敗したニュースは処理済みにせず、次回の実行で再び候補になります。
 - 処理済みのURLは `data/seen.json` に記録し、同じ記事を二重に取り上げないようにしています（60日で自動削除）。
+- 選別では Claude・ChatGPT・Gemini の公式の更新を最優先し、次にAIに関するセキュリティ、その他のAIニュースの順に重視します（`scripts/lib/prompts.ts`）。
+
+## サイトの構成
+
+- トップページは、いちばん新しい週（月曜〜日曜）の記事を日ごとに表示します。最新の1本は大きな切り抜き（ポイント付き）で表示します。
+- 過去の週は `/weeks/<その週の月曜の日付>/`（例: `/weeks/2026-09-21/`）。各ページの「前の週／次の週」と、下部の「これまでの週」から移動できます。
+- スマホでは、切り抜きを見出し・出典・タグだけの短冊にし、画面上部に日付の付箋（押すとその日へ移動）を固定表示します。最新記事のポイントは「開く」で表示します。
+
+## 過去にさかのぼって収集する
+
+Actions の **Daily AI News** を手動実行するときに `since` に開始日（例: `2026-09-20`）を入れると、その日以降に公開されたニュースを公開日ごとに最大5本ずつ記事化します（いちばん古い既存記事の前日まで）。RSSに残っている範囲しか取れないので、古い日ほど候補が少なくなります。
 
 ## 初期設定
 
@@ -105,6 +117,8 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 | `name` | 記事の出典として表示される名前 |
 | `url` | RSS / Atom フィードのURL |
 | `keywords`（任意） | AI専門でないフィード向け。タイトルか概要にどれかを含む記事だけを候補にします |
+| `format`（任意） | 取得形式。省略時は RSS / Atom。`anthropic-news` は RSS のない anthropic.com/news の一覧ページから記事を読み取ります（読み取れなかったときは取得失敗として扱います） |
+| `titlePrefix`（任意） | 見出しの先頭に付ける語。GitHub のリリース（見出しがバージョン番号だけ）用 |
 | `enabled`（任意） | `false` にすると一時的に取得対象から外れます |
 | `maxAgeHours` | 何時間以内に公開された記事を対象にするか |
 
@@ -115,7 +129,7 @@ npm run check-feeds -- https://example.com/feed.xml   # 追加候補のURLを確
 npm run check-feeds                                   # sources.json 全体を確認
 ```
 
-`sources.json` を変更して push すると、**Check feeds** ワークフローが GitHub 上でも同じ確認を行います。
+`sources.json` を変更して push すると、**Check feeds** ワークフローが GitHub 上でも同じ確認を行います。手動実行時に `urls` に追加候補のURL（空白区切り）を入れると、そのURLだけを確認できます。
 
 ## ローカルでの実行
 
@@ -164,7 +178,7 @@ npm run build && npm run preview    # 本番と同じビルド（サイト内検
 - タイトル: `10/1 OpenAIが新機能発表` のように「M/D + 20〜30字の見出し」
 - 本文: ポイント（箇条書き3つ程度）／要約（3〜5文。長い場合は2〜3段落に分ける）／業務への影響（2〜3文）／元記事リンク
 - 一覧用の短い要約 `lead`（全角60〜80字、文として完結）もフロントマターに出力し、トップやタグ一覧のカードに表示します（`lead` のない古い記事は要約を表示）
-- タグ: OpenAI, Google, Anthropic, Microsoft, Meta, 国内, 規制・政策, 研究, ツール, その他（`src/consts.ts`）
+- タグ: OpenAI, Google, Anthropic, Microsoft, Meta, 国内, 規制・政策, 研究, ツール, セキュリティ, その他（`src/consts.ts`）
 - 英語の記事も日本語で書く
 - 著作権への配慮: 元記事の文章をそのまま使わず自分の言葉で要約する。長い引用はしない。画像は扱わない
   - 元記事と30字以上一致する箇所があれば、自動で書き直させます
@@ -184,5 +198,5 @@ scripts/lib/judge.ts               比較モードの審査（Jev）
 sources.json                       取得元RSSの一覧
 data/seen.json                     処理済みURL
 src/content/posts/                 記事（Markdown）
-src/pages/                         トップ・記事・タグ・検索・RSS
+src/pages/                         トップ（最新の週）・週ごとのページ・記事・タグ・検索・RSS
 ```

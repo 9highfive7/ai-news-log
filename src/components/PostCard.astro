@@ -41,14 +41,23 @@ const points = hero ? listPoints(post) : [];
   </div>
   {
     points.length > 0 && (
-      <aside class="card__points" aria-label="ポイント">
-        <p class="card__points-title">ポイント</p>
+      <details class="card__points" open>
+        <summary class="card__points-title">ポイント</summary>
         <ul>
           {points.map((point) => (
             <li>{point}</li>
           ))}
         </ul>
-      </aside>
+      </details>
     )
   }
 </article>
+{/* スマホでは「ポイント」の付箋を閉じた状態で表示する（PCでは開いたまま） */}
+{
+  points.length > 0 && (
+    <script
+      is:inline
+      set:html={"if (matchMedia('(max-width: 767px)').matches) document.querySelectorAll('.card__points').forEach((d) => d.removeAttribute('open'));"}
+    />
+  )
+}

@@ -760,3 +760,171 @@ article[data-pagefind-body] {
     transform: translate(-50%, -50%);
   }
 }
+
+/* ---------- 週の切り替え ---------- */
+
+.week-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 8px 0 8px;
+}
+
+.week-head__label {
+  margin: 0;
+  color: var(--date-ink);
+  font-family: var(--font-hand);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.week-head__range {
+  margin-left: 12px;
+  font-size: 1rem;
+}
+
+.week-head .week-nav {
+  margin: 0;
+}
+
+.week-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 56px;
+}
+
+.week-head .week-nav {
+  justify-content: flex-end;
+}
+
+.week-nav a {
+  --tilt: -0.6deg;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-chip);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-decoration: none;
+  transform: rotate(calc(var(--tilt) * var(--tilt-scale)));
+}
+
+.week-nav span:last-child a {
+  --tilt: 0.6deg;
+  text-align: right;
+}
+
+.week-nav a:hover {
+  text-decoration: underline;
+}
+
+.week-nav__range {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.week-list {
+  margin-top: 32px;
+}
+
+.week-list__title {
+  margin: 0 0 12px;
+  color: var(--date-ink);
+  font-family: var(--font-hand);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.week-list ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.week-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-chip);
+  color: var(--ink);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.week-list a[aria-current='page'] {
+  background: var(--sticky);
+  font-weight: 700;
+}
+
+.week-list__count {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+
+/* ポイントの付箋は details（スマホでは閉じて表示）。カード全体のリンクより上に置いて開閉できるようにする */
+.card__points { position: relative; z-index: 1; }
+.card__points > summary { list-style: none; cursor: pointer; }
+.card__points > summary::-webkit-details-marker { display: none; }
+
+/* ---------- スマホ: 最新記事を縮め、ポイントの付箋は開閉式にする ---------- */
+@media (max-width: 767px) {
+  .card--hero { padding: 28px 18px 20px; margin-bottom: 28px; }
+  .card--hero .card__title { font-size: 1.5rem; }
+  .card__points { margin-top: 16px; padding: 0 16px; }
+  .card__points > summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; margin: 0; }
+  .card__points > summary::after { content: '開く ▾'; font-family: var(--font-body); font-size: 0.875rem; font-weight: 700; }
+  .card__points[open] > summary::after { content: '閉じる ▴'; }
+  .card__points[open] { padding-bottom: 14px; }
+}
+
+/* ---------- 日付の付箋インデックス（スマホで上部に固定） ---------- */
+.day-tabs { display: none; }
+@media (max-width: 767px) {
+  .day-tabs {
+    display: block; position: sticky; top: 0; z-index: 5;
+    margin: 0 -16px; padding: 10px 16px;
+    background-color: var(--board);
+    background-image: radial-gradient(var(--board-dot) 1px, transparent 1.6px);
+    background-size: 14px 14px;
+    box-shadow: 0 6px 8px -6px rgba(0, 0, 0, 0.35);
+  }
+  .day-tabs ul { display: flex; gap: 8px; overflow-x: auto; margin: 0; padding: 2px 2px 4px; list-style: none; scrollbar-width: none; }
+  .day-tabs a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 56px; min-height: 44px; padding: 2px 8px;
+    background: var(--sticky); box-shadow: var(--shadow-chip); color: var(--ink);
+    font-family: var(--font-hand); font-size: 1rem; font-weight: 600; line-height: 1.2; text-decoration: none;
+  }
+  .day-tabs li:nth-child(odd) a { transform: rotate(calc(-1deg * var(--tilt-scale))); }
+  .day-tabs li:nth-child(even) a { transform: rotate(calc(1deg * var(--tilt-scale))); }
+  .day-tabs__sub { font-family: var(--font-body); font-size: 0.75rem; font-weight: 400; }
+  .day__heading { scroll-margin-top: 76px; }
+}
+
+/* ---------- スマホ: 短冊型の切り抜き（要約は省き、見出し・出典・タグだけ） ---------- */
+@media (max-width: 767px) {
+  .day { margin-top: 32px; }
+  .day__heading { font-size: 1.5rem; margin-bottom: 18px; }
+  .cards { gap: 16px; }
+  .cards .card { padding: 18px 16px 12px; }
+  .cards .card::before { width: 64px; height: 16px; top: -8px; }
+  .cards .card__excerpt { display: none; }
+  .cards .card__title { margin-bottom: 8px; font-size: 1.0625rem; }
+}

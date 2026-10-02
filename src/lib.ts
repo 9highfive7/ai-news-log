@@ -70,3 +70,35 @@ export function listPoints(post: Post): string[] {
     .map((line) => line.match(/^\s*[-*]\s+(.+)$/)?.[1]?.trim())
     .filter((s): s is string => Boolean(s));
 }
+
+/** その日を含む週の月曜日（日本時間の YYYY-MM-DD）。週は月曜〜日曜 */
+export function weekKey(date: Date): string {
+  const d = new Date(`${dateKey(date)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+
+/** 9/28（月）〜10/4（日） */
+export function formatWeekRange(key: string): string {
+  const start = new Date(`${key}T00:00:00Z`);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 6);
+  const md = (d: Date) => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+  return `${md(start)}（月）〜${md(end)}（日）`;
+}
+
+export function weekUrl(key: string): string {
+  return url(`weeks/${key}/`);
+}
+
+/** 記事を週ごとにまとめる（新しい週から） */
+export function groupByWeek(posts: Post[]): { key: string; posts: Post[] }[] {
+  const groups: { key: string; posts: Post[] }[] = [];
+  for (const post of posts) {
+    const key = weekKey(post.data.date);
+    let group = groups.find((g) => g.key === key);
+    if (!group) groups.push((group = { key, posts: [] }));
+    group.posts.push(post);
+  }
+  return groups.sort((a, b) => b.key.localeCompare(a.key));
+}
