@@ -54,6 +54,33 @@ ${published.length ? `- 次の見出しの記事はすでに掲載済みです�
 {"selected": [{"id": 3, "related_ids": [7], "reason": "選んだ理由（短く）"}]}`;
 }
 
+// ---------- 掲載済み記事との重複確認 ----------
+
+export const DuplicateSchema = z.object({
+  duplicates: z.array(z.object({ id: z.number().int(), published: z.string() })).default([]),
+});
+
+/** 選別で選んだ候補のうち、掲載済みの記事と同じ出来事を扱うものを答えさせる */
+export function buildDuplicatePrompt(picked: { id: number; item: FeedItem }[], published: string[]): string {
+  const list = picked.map(({ id, item }) => ({ id, source: item.sourceName, title: item.title, summary: item.summary.slice(0, 200) }));
+  return `次の「候補」のうち、「掲載済み」の記事と同じ出来事を扱うものを答えてください。
+
+<candidates>
+${JSON.stringify(list, null, 1)}
+</candidates>
+
+<published>
+${published.map((t) => `- ${t}`).join('\n')}
+</published>
+
+- 同じ発表・同じ製品の公開・同じ事件を、別の媒体や公式ブログが伝えているものは「同じ出来事」です（例: 掲載済み「Google、新AIモデルGemini 4 Argon発表」と候補「Gemini 4 Argon: our next era of frontier intelligence」）。
+- 同じ企業・同じサービスでも、別の発表や別の機能追加なら同じ出来事ではありません。
+- 該当がなければ空の配列にしてください。
+
+出力形式:
+{"duplicates": [{"id": 3, "published": "同じ出来事の掲載済み見出し"}]}`;
+}
+
 // ---------- 記事化 ----------
 
 export const ARTICLE_SYSTEM = `あなたはAIニュースを日本語の短い記事にまとめるライターです。社内共有用のブログに載せます。

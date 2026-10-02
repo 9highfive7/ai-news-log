@@ -21,8 +21,10 @@ import {
   ARTICLE_SYSTEM,
   ArticleSchema,
   buildArticlePrompt,
+  buildDuplicatePrompt,
   buildSelectPrompt,
   checkArticle,
+  DuplicateSchema,
   SELECT_SYSTEM,
   SelectionSchema,
   type ArticleDraft,
@@ -193,10 +195,39 @@ async function selectNews(provider: LlmProvider, candidates: FeedItem[], maxArti
       return null;
     },
   });
-  const picks = selection.selected.slice(0, maxArticles);
+  let picks = selection.selected.slice(0, maxArticles);
   console.log(`[${provider.name}] 選別結果: ${picks.length}本`);
   for (const p of picks) console.log(`  - [${candidates[p.id].sourceName}] ${candidates[p.id].title}（${p.reason}）`);
+  if (published.length && picks.length) picks = await dropPublished(provider, picks, candidates, published);
   return picks;
+}
+
+/**
+ * 選別の指示だけでは掲載済みの話題を選んでしまうことがあるので、選んだ候補だけを
+ * 掲載済みの見出しと突き合わせて、同じ出来事のものを外す（確認に失敗したらそのまま使う）
+ */
+async function dropPublished(provider: LlmProvider, picks: Pick[], candidates: FeedItem[], published: string[]): Promise<Pick[]> {
+  const ids = new Set(picks.map((p) => p.id));
+  try {
+    const result = await callJson(provider, {
+      label: '重複確認',
+      system: SELECT_SYSTEM,
+      prompt: buildDuplicatePrompt(picks.map((p) => ({ id: p.id, item: candidates[p.id] })), published),
+      schema: DuplicateSchema,
+      maxTokens: 1000,
+      extraCheck: (r) => {
+        const bad = r.duplicates.find((d) => !ids.has(d.id));
+        return bad ? `候補にない id ${bad.id} が含まれています。` : null;
+      },
+    });
+    const dup = new Map(result.duplicates.map((d) => [d.id, d.published]));
+    for (const [id, title] of dup) console.log(`  × 掲載済みと同じ話題のため除外: ${candidates[id].title}（掲載済み: ${title}）`);
+    return picks.filter((p) => !dup.has(p.id));
+  } catch (err) {
+    if (isFatalApiError(err)) throw err;
+    console.warn(`  重複確認に失敗したため、選別結果をそのまま使います: ${errorMessage(err)}`);
+    return picks;
+  }
 }
 
 async function writeArticle(provider: LlmProvider, item: FeedItem, related: FeedItem[], body: string | null): Promise<ArticleDraft> {
@@ -232,7 +263,10 @@ async function runNormal(
   now: Date,
   today: string,
 ): Promise<{ written: number; failed: FeedItem[] }> {
-  const picks = await selectNews(provider, candidates, maxArticles);
+  // 直近1週間に掲載した記事と同じ話題は選ばない（別の媒体が後から報じたものなど）
+  const weekAgo = addDays(today, -7);
+  const published = (await existingPosts()).filter((p) => p.ymd >= weekAgo).map((p) => p.title);
+  const picks = await selectNews(provider, candidates, maxArticles, published);
   await mkdir(POSTS_DIR, { recursive: true });
   const usedNames = new Set<string>();
   let written = 0;
