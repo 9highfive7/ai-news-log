@@ -93,7 +93,7 @@ URL: ${item.url}
 </source>
 ${body ? `\n<source_text>\n${body}\n</source_text>\n` : '\n（本文は取得できなかったので、タイトルと概要の範囲で書いてください。わからないことは書かないこと）\n'}${relatedText}
 各フィールドの指示:
-- headline: 記事の見出し。20〜30字（英数字・記号も1文字として数える。30字を超えると不合格）。日付は付けない。
+- headline: 記事の見出し。25字前後を目安に20〜30字（英数字・記号も1文字として数える。20字未満・30字超は不合格）。日付は付けない。
   「誰が・何をした」だけを書き、補足・数値・副題・理由は入れない（それらは summary に書く）。元記事のタイトルをなぞらず、短く言い換える。
   良い例: "OpenAIがChatGPTに新しい音声機能を追加"（25字） / "カリフォルニア州がAIのみの解雇判断を禁止"（21字） / "DeepSeekがHuawei向けAI開発ツールを公開"（27字）
 - slug: URL用の英語スラッグ。小文字英数字とハイフンのみ、3〜6単語（例: "openai-chatgpt-voice-update"）。
@@ -115,9 +115,10 @@ const COPY_WINDOW = 30;
 export function checkArticle(draft: ArticleDraft, sourceText: string): string | null {
   const len = [...draft.headline].length;
   if (len < HEADLINE_MIN || len > HEADLINE_MAX) {
+    // 削りすぎ・足しすぎで行ったり来たりしないよう、目標の字数（25字前後）と増減の目安を具体的に伝える
     return len > HEADLINE_MAX
-      ? `headline「${draft.headline}」は${len}字で長すぎます。あと${len - 30}字以上削って20〜30字にしてください。補足・数値・副題を外し「誰が・何をした」だけにしてください。`
-      : `headline「${draft.headline}」は${len}字で短すぎます。20〜30字にしてください。`;
+      ? `headline「${draft.headline}」は${len}字で長すぎます。${len - 25}字ほど削って25字前後（20〜30字）にしてください。補足・数値・副題を外し「誰が・何をした」だけにしてください。削りすぎて20字未満にもしないでください。`
+      : `headline「${draft.headline}」は${len}字で短すぎます。${25 - len}字ほど足して25字前後（20〜30字）にしてください。主語（企業名など）と、何をしたか（発表・公開・提供開始など）が両方わかる形にしてください。`;
   }
   const all = [draft.headline, draft.summary, ...draft.points, draft.impact].join('\n');
   const internal = INTERNAL_WORDS.find((w) => all.includes(w));
