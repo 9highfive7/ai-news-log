@@ -97,7 +97,8 @@ export function renderArticleBody(draft: ArticleDraft, item: FeedItem, headingLe
   ].join('\n');
 }
 
-export function renderMarkdown(draft: ArticleDraft, item: FeedItem, now: Date): string {
+/** rank: その日の選別での順位（1が最重要）。同じ日の記事の並び順に使う */
+export function renderMarkdown(draft: ArticleDraft, item: FeedItem, now: Date, rank?: number): string {
   const frontmatter = [
     '---',
     `title: ${yamlString(articleTitle(draft, now))}`,
@@ -106,6 +107,7 @@ export function renderMarkdown(draft: ArticleDraft, item: FeedItem, now: Date): 
     `lead: ${yamlString(draft.lead.trim())}`,
     `source_name: ${yamlString(item.sourceName)}`,
     `source_url: ${yamlString(item.url)}`,
+    ...(rank ? [`rank: ${rank}`] : []),
     '---',
   ].join('\n');
   return `${frontmatter}\n\n${renderArticleBody(draft, item)}`;

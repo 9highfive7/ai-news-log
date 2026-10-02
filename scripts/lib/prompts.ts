@@ -185,3 +185,25 @@ export function findCopiedSpan(generated: string, source: string): string | null
   }
   return null;
 }
+
+// ---------- 既存記事の見直し（セキュリティタグ） ----------
+
+export const SecurityTagSchema = z.object({
+  security: z.array(z.object({ id: z.number().int(), reason: z.string() })).default([]),
+});
+
+/** 既存の記事のうち「セキュリティ」タグを付けるべきものを答えさせる */
+export function buildSecurityTagPrompt(posts: { id: number; title: string; lead: string; tags: string[] }[]): string {
+  return `次の記事のうち、「セキュリティ」タグを付けるべきものを答えてください。
+
+<posts>
+${JSON.stringify(posts, null, 1)}
+</posts>
+
+- 「セキュリティ」に当たるのは、AIを狙った攻撃や悪用、脆弱性、情報漏えい、不正アクセス、プロンプトインジェクション、AIの安全対策・防御、セキュリティ製品・サービスの話題です。
+- AIの倫理や社会的な影響、雇用、規制だけの話題は含めません。
+- すでに「セキュリティ」タグが付いている記事は答えなくて構いません。
+
+出力形式:
+{"security": [{"id": 3, "reason": "理由（短く）"}]}`;
+}

@@ -11,7 +11,8 @@
     "generate": "tsx scripts/generate.ts",
     "generate:dry": "tsx scripts/generate.ts --dry-run",
     "check-feeds": "tsx scripts/check-feeds.ts",
-    "compare": "tsx scripts/generate.ts --provider=compare"
+    "compare": "tsx scripts/generate.ts --provider=compare",
+    "review": "tsx scripts/review.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

@@ -15,7 +15,15 @@ export function postUrl(post: Post): string {
 
 export async function getPosts(): Promise<Post[]> {
   const posts = await getCollection('posts');
-  return posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime() || b.id.localeCompare(a.id));
+  // 日付（日本時間）の新しい順。同じ日の中は選別の順位（rank）順で、rank のない記事はその後ろに時刻の新しい順
+  const rank = (p: Post) => p.data.rank ?? Number.MAX_SAFE_INTEGER;
+  return posts.sort(
+    (a, b) =>
+      dateKey(b.data.date).localeCompare(dateKey(a.data.date)) ||
+      rank(a) - rank(b) ||
+      b.data.date.getTime() - a.data.date.getTime() ||
+      b.id.localeCompare(a.id),
+  );
 }
 
 /** 日本時間の YYYY-MM-DD */

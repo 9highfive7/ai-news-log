@@ -13,6 +13,8 @@ const posts = defineCollection({
     source_url: z.url(),
     /** 一覧用の短い要約（全角60〜80字）。古い記事にはない */
     lead: z.string().optional(),
+    /** その日の選別での順位（1が最重要）。同じ日の記事はこの順に並べる。古い記事にはない */
+    rank: z.number().int().positive().optional(),
   }),
 });
 
