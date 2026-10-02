@@ -3,8 +3,8 @@
  *
  *   npm run generate                         # 本番（data/seen.json も更新）
  *   npm run generate:dry                     # dry-run（記事ファイルの出力のみ。seen.json は更新しない）
- *   npm run generate:dry -- --provider=gemini  # 使うモデルを指定（claude / gemini。省略時は LLM_PROVIDER、なければ claude）
- *   npm run compare                          # 比較モード（同じニュースを両方で記事化し、レポートだけを出力）
+ *   npm run generate:dry -- --provider=gemini  # 使うモデルを指定（claude / gemini / openai。省略時は LLM_PROVIDER、なければ claude）
+ *   npm run compare                          # 比較モード（同じニュースを全モデルで記事化し、レポートだけを出力）
  */
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { join, resolve } from 'node:path';
 import { renderCompareReport, type CompareArticle, type CompareSelection } from './lib/compare.ts';
 import { createJudge } from './lib/judge.ts';
 import { fetchArticleText, fetchFeed, loadSources, matchesKeywords, normalizeUrl, type FeedItem } from './lib/feeds.ts';
-import { createProvider, isFatalApiError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
+import { createProvider, hasApiKey, isFatalApiError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
 import { callJson, getStats } from './lib/llm/json.ts';
 import { jstParts, renderMarkdown, sanitizeSlug, uniqueFileName } from './lib/markdown.ts';
 import {
@@ -50,7 +50,7 @@ async function main() {
   const today = jstParts(now).ymd;
 
   // キーの設定漏れは収集前に気づけるよう、最初にプロバイダーを作る
-  const providers = (mode === 'compare' ? PROVIDERS : [mode]).map(createProvider);
+  const providers = (mode === 'compare' ? compareProviders() : [mode]).map(createProvider);
 
   const label = mode === 'compare' ? '[比較モード] ' : dryRun ? '[dry-run] ' : '';
   console.log(
@@ -88,11 +88,20 @@ async function main() {
   await setOutput('count', String(written));
 }
 
+/** 比較モードで使うモデル: API キーが設定されているもの全部（2つ以上必要） */
+function compareProviders(): ProviderName[] {
+  const names = PROVIDERS.filter(hasApiKey);
+  const skipped = PROVIDERS.filter((n) => !hasApiKey(n));
+  if (skipped.length) console.log(`比較から除外（API キー未設定）: ${skipped.join(', ')}`);
+  if (names.length < 2) throw new Error('比較モードには2つ以上のモデルの API キーが必要です');
+  return names;
+}
+
 function parseMode(): Mode {
   const arg = process.argv.find((a) => a.startsWith('--provider='))?.split('=')[1];
   const value = (arg || process.env.LLM_PROVIDER || 'claude').trim().toLowerCase();
   if (value === 'compare' || (PROVIDERS as string[]).includes(value)) return value as Mode;
-  throw new Error(`provider の指定が不正です: ${value}（claude / gemini / compare のいずれか）`);
+  throw new Error(`provider の指定が不正です: ${value}（claude / gemini / openai / compare のいずれか）`);
 }
 
 /** RSSを集めて、期間・キーワード・処理済みで絞った候補を返す（1つのフィードが失敗しても全体は止めない） */
@@ -197,8 +206,8 @@ async function runNormal(provider: LlmProvider, candidates: FeedItem[], maxArtic
 }
 
 /**
- * 比較モード: 両方のモデルで選別し、両方が選んだニュースを優先して最大 maxArticles 本を、
- * 同じ材料（本文）で両方のモデルに記事化させる。記事ファイル・seen.json は書かず、レポートだけを出力する。
+ * 比較モード: 各モデルで選別し、多くのモデルが選んだニュースを優先して最大 maxArticles 本を、
+ * 同じ材料（本文）で全モデルに記事化させる。記事ファイル・seen.json は書かず、レポートだけを出力する。
  */
 async function runCompare(providers: LlmProvider[], candidates: FeedItem[], maxArticles: number, now: Date) {
   // TYPESAFE_API_KEY があれば Jev に審査させる（なければ審査なしで比較する）
@@ -254,7 +263,7 @@ async function runCompare(providers: LlmProvider[], candidates: FeedItem[], maxA
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, report);
 }
 
-/** 両方が選んだもの（順位の平均が高い順）→ 片方だけが選んだもの（各モデルの順位を交互に）の順で並べる */
+/** 選んだモデルが多いもの → 順位の平均が高いもの（各モデルの順位を交互に）の順で並べる */
 function mergePicks(selections: CompareSelection[], maxArticles: number): Pick[] {
   const ranks = new Map<number, { pick: Pick; ranks: number[]; related: Set<number> }>();
   for (const s of selections) {

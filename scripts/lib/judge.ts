@@ -58,7 +58,10 @@ export interface ArticleScores {
 
 export interface JudgeResult {
   byProvider: Partial<Record<ProviderName, ArticleScores>>;
-  /** 総合でどちらが優れているかの確率（A/B の順番を入れ替えた2回の平均） */
+  /**
+   * 総合で優れている確率。モデルの組み合わせごとに A/B の順番を入れ替えて2回判定し、
+   * 各モデルが関わった1対1の勝ち確率を平均したもの（3モデル以上でも総当たりで判定する）
+   */
   preference?: { win: Partial<Record<ProviderName, number>>; tie: number };
   error?: string;
 }
@@ -137,6 +140,24 @@ export function createJudge(): Judge | null {
     return { win, tie };
   }
 
+  /** 総当たりで1対1の判定を行い、モデルごとに勝ち確率を平均する */
+  async function compareAll(item: FeedItem, body: string | null, entries: [ProviderName, ArticleDraft][]) {
+    const wins = new Map<ProviderName, number[]>();
+    const ties: number[] = [];
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const { win, tie } = await compare(item, body, entries[i], entries[j]);
+        for (const [name, p] of Object.entries(win) as [ProviderName, number][]) wins.set(name, [...(wins.get(name) ?? []), p]);
+        ties.push(tie);
+      }
+    }
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    return {
+      win: Object.fromEntries([...wins].map(([name, ps]) => [name, mean(ps)])) as Partial<Record<ProviderName, number>>,
+      tie: mean(ties),
+    };
+  }
+
   const judge: Judge = {
     model,
     stats,
@@ -146,7 +167,7 @@ export function createJudge(): Judge | null {
       try {
         const entries = Object.entries(drafts) as [ProviderName, ArticleDraft][];
         for (const [name, draft] of entries) result.byProvider[name] = await scoreArticle(item, body, draft);
-        if (entries.length === 2) result.preference = await compare(item, body, entries[0], entries[1]);
+        if (entries.length >= 2) result.preference = await compareAll(item, body, entries);
       } catch (err) {
         const status = (err as { status?: number }).status;
         const message = err instanceof Error ? err.message : String(err);

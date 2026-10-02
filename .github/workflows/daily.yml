@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       provider:
-        description: '使うモデル（auto = Variables の LLM_PROVIDER、未設定なら claude ／ compare = 両方で記事化して比較レポートだけを出力）'
+        description: '使うモデル（auto = Variables の LLM_PROVIDER、未設定なら claude ／ compare = APIキーのある全モデルで記事化して比較レポートだけを出力）'
         type: choice
-        options: [auto, claude, gemini, compare]
+        options: [auto, claude, gemini, openai, compare]
         default: auto
       dry_run:
         description: 'dry-run（記事を生成してアーティファクトに保存するだけ。コミット・デプロイ・seen.json更新なし）'
@@ -59,13 +59,15 @@ jobs:
           LLM_PROVIDER: ${{ (inputs.provider && inputs.provider != 'auto') && inputs.provider || vars.LLM_PROVIDER }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           # 比較モードの審査役（Jev）。未設定なら審査なしで比較する
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
           TYPESAFE_DEFAULT_MODEL: ${{ vars.TYPESAFE_DEFAULT_MODEL }}
           # Settings > Secrets and variables > Actions > Variables で上書き可能
-          # （未設定なら claude-haiku-4-5 / gemini-3.5-flash-lite）
+          # （未設定なら claude-haiku-4-5 / gemini-3.5-flash-lite / gpt-6-luna）
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           MAX_ARTICLES: ${{ vars.MAX_ARTICLES }}
         run: npm run ${{ inputs.dry_run && 'generate:dry' || 'generate' }}
 
