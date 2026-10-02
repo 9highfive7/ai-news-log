@@ -100,6 +100,7 @@ export function renderCompareReport(opts: {
       }
       const headlineLength = [...r.draft.headline].length;
       out.push(`**${articleTitle(r.draft, now)}**（見出し${headlineLength}字）`, '');
+      out.push(`一覧用の短い要約（${[...r.draft.lead].length}字）: ${r.draft.lead}`, '');
       out.push(`タグ: ${r.draft.tags.join(', ')}`, '');
       out.push(renderArticleBody(r.draft, a.item, 5));
     }

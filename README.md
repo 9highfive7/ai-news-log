@@ -160,9 +160,10 @@ npm run build && npm run preview    # 本番と同じビルド（サイト内検
 `scripts/lib/prompts.ts` でLLMに指示しています（Claude・Gemini共通）。
 
 - ファイル名: `src/content/posts/YYYY-MM-DD-slug.md`
-- フロントマター: `title`, `date`, `tags`, `source_name`, `source_url`
+- フロントマター: `title`, `date`, `tags`, `lead`, `source_name`, `source_url`
 - タイトル: `10/1 OpenAIが新機能発表` のように「M/D + 20〜30字の見出し」
-- 本文: 要約（3〜5文）／ポイント（箇条書き3つ程度）／業務への影響（2〜3文）／元記事リンク
+- 本文: ポイント（箇条書き3つ程度）／要約（3〜5文。長い場合は2〜3段落に分ける）／業務への影響（2〜3文）／元記事リンク
+- 一覧用の短い要約 `lead`（全角60〜80字、文として完結）もフロントマターに出力し、トップやタグ一覧のカードに表示します（`lead` のない古い記事は要約を表示）
 - タグ: OpenAI, Google, Anthropic, Microsoft, Meta, 国内, 規制・政策, 研究, ツール, その他（`src/consts.ts`）
 - 英語の記事も日本語で書く
 - 著作権への配慮: 元記事の文章をそのまま使わず自分の言葉で要約する。長い引用はしない。画像は扱わない

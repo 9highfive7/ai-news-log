@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import { getPosts, url } from '../lib';
+import { getPosts, listSummary, url } from '../lib';
 
 export async function GET(context: APIContext) {
   const posts = (await getPosts()).slice(0, 50);
@@ -14,7 +14,7 @@ export async function GET(context: APIContext) {
       pubDate: post.data.date,
       link: url(`posts/${post.id}/`),
       categories: post.data.tags,
-      description: post.body?.match(/## 要約\s+([\s\S]*?)\n##/)?.[1]?.trim() ?? '',
+      description: listSummary(post),
     })),
     customData: '<language>ja</language>',
   });

@@ -1,37 +1,34 @@
 ---
-import { tagSlug } from '../consts';
-import { groupByDate, postUrl, url, type Post } from '../lib';
+import PostCard from './PostCard.astro';
+import { groupByDate, type Post } from '../lib';
 
 interface Props {
   posts: Post[];
+  /** 先頭の記事を「最新ニュース」として大きく表示する（トップページの1ページ目のみ） */
+  withHero?: boolean;
 }
 
-const groups = groupByDate(Astro.props.posts);
+const { posts, withHero = false } = Astro.props;
+const groups = groupByDate(posts);
+const heroId = withHero ? posts[0]?.id : undefined;
 ---
 
 {
   groups.map((group) => (
-    <section>
-      <h2 class="date-heading">
+    <section class="day" aria-labelledby={`day-${group.key}`}>
+      <h2 class="day__heading" id={`day-${group.key}`}>
         <time datetime={group.key}>{group.heading}</time>
+        {/* 件数は「最新ニュース」も含めた、その日の記事数 */}
+        <span class="day__count">{group.posts.length}件</span>
       </h2>
-      <ul class="post-list">
-        {group.posts.map((post) => (
-          <li class="post-card">
-            <h3>
-              <a href={postUrl(post)}>{post.data.title}</a>
-            </h3>
-            <div class="meta">
-              <span>{post.data.source_name}</span>
-              {post.data.tags.map((tag) => (
-                <a class="tag" href={url(`tags/${tagSlug(tag)}/`)}>
-                  {tag}
-                </a>
-              ))}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {group.posts.some((p) => p.id === heroId) && <PostCard post={group.posts.find((p) => p.id === heroId)!} hero />}
+      <div class="cards">
+        {group.posts
+          .filter((p) => p.id !== heroId)
+          .map((post) => (
+            <PostCard post={post} />
+          ))}
+      </div>
     </section>
   ))
 }

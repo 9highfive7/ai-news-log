@@ -44,3 +44,15 @@ export function groupByDate(posts: Post[]): { key: string; heading: string; post
   }
   return groups;
 }
+
+/** 一覧表示用のタイトル。先頭の「M/D 」を外し、社名・製品名が先頭に来るようにする（記事データは変えない） */
+export function listTitle(post: Post): string {
+  return post.data.title.replace(/^\d{1,2}\/\d{1,2}\s+/, '');
+}
+
+/** 一覧用の短い要約。lead があればそれを、なければ本文の「要約」をそのまま使う（行数は CSS で制限する） */
+export function listSummary(post: Post): string {
+  if (post.data.lead) return post.data.lead;
+  // 段落の区切り（改行）は日本語なので空白を入れずにつなぐ
+  return post.body?.match(/## 要約\s+([\s\S]*?)\n##/)?.[1]?.replace(/\s*\n\s*/g, '').replace(/\s+/g, ' ').trim() ?? '';
+}

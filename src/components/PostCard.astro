@@ -1,0 +1,31 @@
+---
+import { tagSlug } from '../consts';
+import { listSummary, listTitle, postUrl, url, type Post } from '../lib';
+
+interface Props {
+  post: Post;
+  hero?: boolean;
+}
+
+const { post, hero = false } = Astro.props;
+---
+
+<article class:list={['card', { 'card--hero': hero }]}>
+  {hero && <p class="card__eyebrow">最新ニュース</p>}
+  <h3 class="card__title">
+    <a href={postUrl(post)}>{listTitle(post)}</a>
+  </h3>
+  <p class="card__excerpt">{listSummary(post)}</p>
+  <div class="card__meta">
+    <span class="card__source">{post.data.source_name}</span>
+    <span class="card__tags">
+      {
+        post.data.tags.map((tag) => (
+          <a class={`tag tag--${tagSlug(tag)}`} href={url(`tags/${tagSlug(tag)}/`)}>
+            {tag}
+          </a>
+        ))
+      }
+    </span>
+  </div>
+</article>
