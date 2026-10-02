@@ -5,6 +5,7 @@ tags: ["Microsoft", "研究", "ツール"]
 lead: "マイクロソフトは生物学の研究を加速させるマルチモーダルなAIシステム「Quine」を発表し、がん治療の化合物探索などで成果を挙げている。"
 source_name: "Microsoft Source"
 source_url: "https://www.microsoft.com/en-us/research/blog/introducing-quine-an-ai-research-system-designed-for-the-complexity-of-biology/"
+rank: 6
 ---
 
 ## ポイント

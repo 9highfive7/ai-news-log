@@ -4,6 +4,7 @@ date: 2026-10-02T12:08:13+09:00
 tags: ["Google", "ツール", "研究"]
 source_name: "ITmedia AI+"
 source_url: "https://www.itmedia.co.jp/news/article/2610/01/2000001912/"
+rank: 1
 ---
 
 ## ポイント

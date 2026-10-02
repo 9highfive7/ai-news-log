@@ -5,6 +5,7 @@ tags: ["ツール", "その他"]
 lead: "Docker社は、ローカルとクラウド間でAIエージェントの作業環境を自由に移動できる新しいクラウドサービスを公開しました。"
 source_name: "Publickey"
 source_url: "https://www.publickey1.jp/blog/26/docker_cloud_snadboxesai.html"
+rank: 2
 ---
 
 ## ポイント

@@ -1,9 +1,10 @@
 ---
 title: "10/2 OpenAI、推論過程を狙う組織的蒸留を阻止"
 date: 2026-10-02T12:01:32+09:00
-tags: ["OpenAI", "研究"]
+tags: ["OpenAI", "研究", "セキュリティ"]
 source_name: "ITmedia AI+"
 source_url: "https://www.itmedia.co.jp/news/article/2610/01/2000001929/"
+rank: 4
 ---
 
 ## ポイント

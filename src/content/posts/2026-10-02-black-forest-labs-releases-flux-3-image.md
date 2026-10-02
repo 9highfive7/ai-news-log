@@ -4,6 +4,7 @@ date: 2026-10-02T12:01:32+09:00
 tags: ["ツール", "研究"]
 source_name: "GIGAZINE"
 source_url: "https://gigazine.net/news/20261002-flux-3-image/"
+rank: 2
 ---
 
 ## ポイント

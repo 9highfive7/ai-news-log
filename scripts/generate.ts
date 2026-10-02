@@ -5,10 +5,11 @@
  *   npm run generate:dry                     # dry-run（記事ファイルの出力のみ。seen.json は更新しない）
  *   npm run generate:dry -- --provider=gemini  # 使うモデルを指定（claude / gemini / openai。省略時は LLM_PROVIDER、なければ claude）
  *   TARGET_URL=<記事URL> npm run generate     # 指定した1本だけを記事化（選別なし。処理済み・期間外でも対象）
+ *   PLAN_FILE=data/plans/xxx.json npm run generate  # 計画ファイルに書いたニュースを、指定した日付・順位で記事化（見直しの反映用）
  *   SINCE=2026-09-25 npm run generate         # さかのぼり収集: 指定日以降のニュースを公開日ごとに選別・記事化（既存記事の前日まで）
  *   npm run compare                          # 比較モード（同じニュースを全モデルで記事化し、レポートだけを出力）
  */
-import { appendFile, mkdir, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { renderCompareReport, type CompareArticle, type CompareSelection } from './lib/compare.ts';
@@ -68,6 +69,20 @@ async function main() {
     }
     console.log(`完了: ${written}本の記事を出力しました`);
     await setOutput('count', String(written));
+    return;
+  }
+
+  // 計画ファイルに書いたニュースを記事化する（既存記事の見直しで決めた追加・書き直しの反映用）
+  const planFile = process.env.PLAN_FILE?.trim();
+  if (planFile) {
+    if (mode === 'compare') throw new Error('PLAN_FILE は比較モードでは使えません');
+    const urls = await runPlan(providers[0], join(ROOT, planFile));
+    if (!dryRun && urls.length) {
+      for (const url of urls) seen.urls[normalizeUrl(url)] = today;
+      await saveSeen(SEEN_PATH, seen, today);
+    }
+    console.log(`完了: ${urls.length}本の記事を出力しました`);
+    await setOutput('count', String(urls.length));
     return;
   }
 
@@ -195,6 +210,66 @@ async function runNormal(
   }
   if (picks.length > 0 && written === 0) throw new Error('選別した記事をすべて記事化できませんでした');
   return { written, failed };
+}
+
+interface PlanEntry {
+  /** 記事化するニュースのURL（url か title のどちらかで指定） */
+  url?: string;
+  /** 見出しに含まれる文字列で探す（source と組み合わせる） */
+  title?: string;
+  /** 取得元の名前（sources.json の name） */
+  source?: string;
+  /** 記事の日付（YYYY-MM-DD、日本時間） */
+  date: string;
+  /** その日の中での順位 */
+  rank?: number;
+  /** この語を見出しか概要に含む他の記事を「同じ話題の別記事」として材料に加える（元記事の本文が取れない場合の補足用） */
+  relatedKeyword?: string;
+  /** 既存の記事ファイルを書き直す場合のファイル名 */
+  replace?: string;
+}
+
+/**
+ * 計画ファイル（{"entries": PlanEntry[]}）のニュースを、指定した日付・順位で記事化する。
+ * RSS に残っている記事だけが対象（処理済み・期間外でも対象）。記事化したニュースのURLを返す
+ */
+async function runPlan(provider: LlmProvider, path: string): Promise<string[]> {
+  const plan = JSON.parse(await readFile(path, 'utf8')) as { entries: PlanEntry[] };
+  const config = await loadSources(SOURCES_PATH);
+  const items = (await Promise.all(config.sources.map(fetchFeed))).flatMap((r) => r.items);
+  await mkdir(POSTS_DIR, { recursive: true });
+  const usedNames = new Set<string>();
+  const done: string[] = [];
+  for (const entry of plan.entries) {
+    const item = items.find((i) =>
+      entry.url
+        ? normalizeUrl(i.url) === normalizeUrl(entry.url)
+        : !!entry.title && i.title.includes(entry.title) && (!entry.source || i.sourceName === entry.source),
+    );
+    if (!item) {
+      console.error(`  ✗ 取得元のRSSに見つかりません: ${entry.url ?? entry.title}`);
+      continue;
+    }
+    const keyword = entry.relatedKeyword?.toLowerCase();
+    const related = keyword
+      ? items
+          .filter((i) => i.url !== item.url && `${i.title} ${i.summary}`.toLowerCase().includes(keyword))
+          .slice(0, 6)
+      : [];
+    console.log(`記事化: [${item.sourceName}] ${item.title}（${entry.date}・${entry.rank ?? '-'}位${related.length ? `・関連 ${related.length} 件` : ''}）`);
+    try {
+      const draft = await writeArticle(provider, item, related, await fetchBody(item));
+      const fileName = entry.replace ?? uniqueFileName(POSTS_DIR, entry.date, sanitizeSlug(draft.slug), usedNames);
+      await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, new Date(`${entry.date}T12:00:00+09:00`), entry.rank));
+      done.push(item.url);
+      console.log(`  → src/content/posts/${fileName}`);
+    } catch (err) {
+      if (isFatalApiError(err)) throw err;
+      console.error(`  ✗ 記事化に失敗しました: ${errorMessage(err)}`);
+    }
+  }
+  if (plan.entries.length > 0 && done.length === 0) throw new Error('計画ファイルの記事を1本も記事化できませんでした');
+  return done;
 }
 
 /** 指定した URL の記事を、RSS から探して1本だけ記事化する（処理済み・期間外でも対象） */

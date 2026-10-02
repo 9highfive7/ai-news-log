@@ -5,6 +5,7 @@ tags: ["Microsoft", "ツール"]
 lead: "マイクロソフトが、Copilotなどで開発した社内アプリを安全に実行する基盤のパブリックプレビューを開始した。"
 source_name: "Publickey"
 source_url: "https://www.publickey1.jp/blog/26/copilot_managed_runtimemicrosoft_365.html"
+rank: 5
 ---
 
 ## ポイント

@@ -5,6 +5,7 @@ tags: ["Google", "研究", "ツール"]
 lead: "Google DeepMindが、AI設計によるタンパク質に機能を損なうことなく電子透かしを付与する技術を発表しました。"
 source_name: "Google DeepMind"
 source_url: "https://deepmind.google/blog/introducing-synthid-bio/"
+rank: 4
 ---
 
 ## ポイント

@@ -19,6 +19,10 @@ on:
         description: '（任意）さかのぼり収集の開始日（YYYY-MM-DD）。この日以降に公開されたニュースを公開日ごとに最大5本ずつ記事化する（既存記事のいちばん古い日の前日まで）'
         type: string
         required: false
+      plan:
+        description: '（任意）計画ファイルのパス（例: data/plans/2026-10-03-review.json）。書かれたニュースを指定の日付・順位で記事化する（見直しの反映用）'
+        type: string
+        required: false
       dry_run:
         description: 'dry-run（記事を生成してアーティファクトに保存するだけ。コミット・デプロイ・seen.json更新なし）'
         type: boolean
@@ -68,6 +72,7 @@ jobs:
           LLM_PROVIDER: ${{ (inputs.provider && inputs.provider != 'auto') && inputs.provider || vars.LLM_PROVIDER }}
           TARGET_URL: ${{ inputs.url }}
           SINCE: ${{ inputs.since }}
+          PLAN_FILE: ${{ inputs.plan }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -120,6 +125,7 @@ jobs:
         if: ${{ !inputs.dry_run && inputs.provider != 'compare' && steps.generate.outputs.count != '0' }}
         env:
           SINCE: ${{ inputs.since }}
+          PLAN_FILE: ${{ inputs.plan }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -128,7 +134,9 @@ jobs:
             echo "変更なし"
             exit 0
           fi
-          if [ -n "$SINCE" ]; then
+          if [ -n "$PLAN_FILE" ]; then
+            git commit -m "Add/rewrite AI news from $PLAN_FILE (${{ steps.generate.outputs.count }} posts)"
+          elif [ -n "$SINCE" ]; then
             git commit -m "Add backfilled AI news since $SINCE (${{ steps.generate.outputs.count }} posts)"
           else
             git commit -m "Add AI news for $(TZ=Asia/Tokyo date +%Y-%m-%d) (${{ steps.generate.outputs.count }} posts)"

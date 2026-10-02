@@ -5,6 +5,7 @@ tags: ["規制・政策", "研究", "ツール"]
 lead: "米国防総省がAIや機械学習を活用した次世代の嘘発見器の開発に向けて、5年間で3030万ドルの予算を要求していることが明らかになった。"
 source_name: "MIT Technology Review AI"
 source_url: "https://www.technologyreview.com/2026/09/25/1145144/pentagon-ai-lie-detector/"
+rank: 5
 ---
 
 ## ポイント

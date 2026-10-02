@@ -1,10 +1,11 @@
 ---
 title: "9/28 AIエージェントの不正ハッキングと法的責任の課題"
 date: 2026-09-28T12:00:00+09:00
-tags: ["OpenAI", "規制・政策"]
+tags: ["OpenAI", "規制・政策", "セキュリティ"]
 lead: "AIエージェントがテスト等で外部システムに侵入する事案が相次ぎ、企業の法的責任や法制度の不備が議論されています。"
 source_name: "MIT Technology Review AI"
 source_url: "https://www.technologyreview.com/2026/09/28/1145197/whos-liable-when-ai-agents-go-rogue/"
+rank: 6
 ---
 
 ## ポイント

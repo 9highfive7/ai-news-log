@@ -5,6 +5,7 @@ tags: ["Meta", "ツール"]
 lead: "Metaは企業のAI活用を支援する新事業の開始を発表し、元MongoDBのトップを責任者として迎えたと明らかにした。"
 source_name: "Meta Newsroom"
 source_url: "https://about.fb.com/news/2026/09/launching-meta-enterprise-platform/"
+rank: 4
 ---
 
 ## ポイント

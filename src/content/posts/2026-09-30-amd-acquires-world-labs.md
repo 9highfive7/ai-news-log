@@ -5,6 +5,7 @@ tags: ["研究", "ツール", "その他"]
 lead: "半導体大手のAMDが、物理世界を予測・シミュレーションするAIモデルを手がけるWorld Labsを買収すると発表した。"
 source_name: "Ars Technica AI"
 source_url: "https://arstechnica.com/ai/2026/09/amd-acquires-world-labs-ai-pioneer-fei-fei-lis-world-models-startup/"
+rank: 5
 ---
 
 ## ポイント

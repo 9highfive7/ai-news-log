@@ -5,6 +5,7 @@ tags: ["Google", "ツール"]
 lead: "Google DeepMindは、音声と低遅延の視覚表現をリアルタイムで融合させる新機能を発表した。"
 source_name: "Google DeepMind"
 source_url: "https://deepmind.google/blog/introducing-gemini-38-live-with-live-avatar/"
+rank: 1
 ---
 
 ## ポイント

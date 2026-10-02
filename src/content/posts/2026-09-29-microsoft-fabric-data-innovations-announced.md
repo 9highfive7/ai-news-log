@@ -5,6 +5,7 @@ tags: ["Microsoft", "ツール"]
 lead: "マイクロソフトが欧州のイベントで「Microsoft Fabric」やAzureデータベースの新機能を発表し、AI戦略の強化を狙う。"
 source_name: "Microsoft Official Blog"
 source_url: "https://blogs.microsoft.com/blog/2026/09/28/new-microsoft-data-innovations-unlock-what-only-your-business-knows/"
+rank: 7
 ---
 
 ## ポイント

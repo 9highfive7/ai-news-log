@@ -5,6 +5,7 @@ tags: ["Microsoft", "ツール"]
 lead: "マイクロソフトが、新しい作業モードや開発機能を統合し、自律的なタスク実行にも対応した次世代の「Microsoft Copilot」を発表しました。"
 source_name: "Microsoft Official Blog"
 source_url: "https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/"
+rank: 2
 ---
 
 ## ポイント

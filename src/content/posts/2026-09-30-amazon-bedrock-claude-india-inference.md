@@ -5,6 +5,7 @@ tags: ["Anthropic", "ツール"]
 lead: "Amazon Bedrockは、インド国内でのデータ処理要件を満たしながらAnthropic製モデルの利用を可能にする新機能を提供開始しました。"
 source_name: "AWS Machine Learning Blog"
 source_url: "https://aws.amazon.com/blogs/machine-learning/amazon-bedrock-expands-claude-model-availability-to-india-cross-region-inference/"
+rank: 1
 ---
 
 ## ポイント
