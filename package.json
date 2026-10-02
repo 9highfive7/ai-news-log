@@ -10,11 +10,13 @@
     "check": "astro check && tsc --noEmit -p tsconfig.scripts.json",
     "generate": "tsx scripts/generate.ts",
     "generate:dry": "tsx scripts/generate.ts --dry-run",
-    "check-feeds": "tsx scripts/check-feeds.ts"
+    "check-feeds": "tsx scripts/check-feeds.ts",
+    "compare": "tsx scripts/generate.ts --provider=compare"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
     "@astrojs/rss": "^4.0.19",
+    "@google/genai": "^2.26.0",
     "astro": "^7.3.5",
     "rss-parser": "^3.13.0",
     "zod": "^4.6.5"

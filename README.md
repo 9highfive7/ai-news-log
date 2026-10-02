@@ -1,17 +1,17 @@
 # AIニュースログ
 
-AI関連ニュースを毎日自動で収集し、Claude API で日本語の短い記事にまとめて蓄積するブログです。
+AI関連ニュースを毎日自動で収集し、LLM（Claude または Gemini）で日本語の短い記事にまとめて蓄積するブログです。
 GitHub Pages で公開します（`https://9highfive7.github.io/ai-news-log/`）。
 
 - サイト: [Astro](https://astro.build/)（静的サイト）＋ [Pagefind](https://pagefind.app/)（サイト内検索）
-- 記事生成: Node.js（TypeScript）＋ Anthropic 公式 SDK
+- 記事生成: Node.js（TypeScript）＋ Anthropic 公式 SDK / Google Gen AI SDK（どちらを使うか切り替え可能）
 - 定期実行: GitHub Actions（毎朝 7:00 JST、手動実行も可）
 
 ## しくみ
 
 ```
 GitHub Actions（毎朝7:00 JST / 手動実行）
-  generate: RSS取得 → 直近36時間・未処理の記事に絞る → Claudeが重要度順に最大5本選ぶ
+  generate: RSS取得 → 直近36時間・未処理の記事に絞る → LLMが重要度順に最大5本選ぶ
             → 1本ずつ日本語の記事にする → src/content/posts/ に保存 → コミット & push
   build:    astro build → pagefind で検索インデックス作成
   deploy:   GitHub Pages にデプロイ
@@ -28,13 +28,20 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 
 1. リポジトリの **Settings > Secrets and variables > Actions** を開く
 2. **Secrets** タブで **New repository secret** をクリック
-3. Name に `ANTHROPIC_API_KEY`、Secret に Anthropic の API キー（[Claude Console](https://console.anthropic.com/) で発行）を入れて **Add secret**
+3. 使うモデルのキーを登録する（比較モードを使うなら両方）
+
+| Name | 内容 |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Anthropic の API キー（[Claude Console](https://console.anthropic.com/) で発行） |
+| `GEMINI_API_KEY` | Gemini の API キー（[Google AI Studio](https://aistudio.google.com/) で発行） |
 
 任意で、同じ画面の **Variables** タブから次の値を設定できます。
 
 | 名前 | 内容 | 未設定時 |
 | --- | --- | --- |
-| `ANTHROPIC_MODEL` | 使用するモデル | `claude-haiku-4-5` |
+| `LLM_PROVIDER` | 毎日の定期実行で使うモデルの種類（`claude` / `gemini`） | `claude` |
+| `ANTHROPIC_MODEL` | Claude を使うときのモデル | `claude-haiku-4-5` |
+| `GEMINI_MODEL` | Gemini を使うときのモデル | `gemini-2.5-flash-lite` |
 | `MAX_ARTICLES` | 1日に生成する最大本数 | `5` |
 
 ### 2. GitHub Pages の公開元を「GitHub Actions」にする
@@ -45,10 +52,25 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 ### 3. 動作確認
 
 **Actions** タブ → **Daily AI News** → **Run workflow** で手動実行できます。
+**provider** で使うモデルを選べます（`auto` は Variables の `LLM_PROVIDER`、未設定なら claude）。
 新しい記事が0件でもサイトを公開したい場合（初回など）は、**force_deploy** にチェックを入れて実行してください。
 
 **dry_run** にチェックを入れると、記事を生成するだけでコミット・デプロイ・`data/seen.json` の更新は行いません。
 生成された Markdown は実行結果ページ下部の **Artifacts**（`dry-run-posts`）からダウンロードできます。
+
+### 4. Claude と Gemini を比較する
+
+**provider** で **compare** を選んで実行すると、比較モードになります。
+
+- 両方のモデルで選別し、両方が選んだニュースを優先して最大5本を、同じ材料で両方のモデルに記事化させます。
+- 結果は実行結果ページの **Summary** にそのまま表示されます（Artifacts の `compare-report` からもダウンロード可）。
+  - 集計（記事化できた本数、形式エラーでの出し直し回数、トークン数、概算費用、応答時間）
+  - 選別結果の並び比べ（何を選んだか・理由）
+  - ニュースごとの記事の読み比べ
+- 記事の公開・コミット・`data/seen.json` の更新は行いません。何度でも試せます。
+- どちらを使うか決めたら、Variables の `LLM_PROVIDER` に `claude` か `gemini` を設定してください。
+
+> 概算費用は `scripts/lib/llm/index.ts` に登録した単価で計算しています。単価は変わることがあるので、正確な値は各社の料金ページで確認してください。
 
 > 定期実行（schedule）はリポジトリのデフォルトブランチでのみ動きます。デフォルトブランチを `main` にしておいてください。
 
@@ -89,7 +111,7 @@ Node.js 22.12 以上が必要です。
 
 ```bash
 npm install
-cp .env.example .env   # ANTHROPIC_API_KEY を記入
+cp .env.example .env   # 使うモデルの API キーを記入
 ```
 
 ### 記事生成の dry-run
@@ -101,9 +123,18 @@ npm run generate:dry
 - RSS取得 → 選別 → 記事化まで本番と同じように動き、`src/content/posts/` に Markdown を出力します。
 - `data/seen.json` は更新せず、git の操作（コミット・push）も一切しません。
 - 本数を減らして試すときは `MAX_ARTICLES=2 npm run generate:dry` のようにします。
+- モデルを指定するときは `npm run generate:dry -- --provider=gemini` のようにします（省略時は `.env` の `LLM_PROVIDER`、なければ claude）。
 - 出力された記事が不要なら `git clean -n src/content/posts`（確認）→ `git clean -f src/content/posts` で削除できます。
 
 `npm run generate` は本番用で、`data/seen.json` も更新します（コミットはしません）。
+
+### モデルの比較
+
+```bash
+npm run compare
+```
+
+`compare-output/` に比較レポート（Markdown）を出力します（両方の API キーが必要です）。
 
 ### サイトの確認
 
@@ -114,7 +145,7 @@ npm run build && npm run preview    # 本番と同じビルド（サイト内検
 
 ## 記事のルール
 
-`scripts/lib/prompts.ts` でClaudeに指示しています。
+`scripts/lib/prompts.ts` でLLMに指示しています（Claude・Gemini共通）。
 
 - ファイル名: `src/content/posts/YYYY-MM-DD-slug.md`
 - フロントマター: `title`, `date`, `tags`, `source_name`, `source_url`
@@ -125,7 +156,7 @@ npm run build && npm run preview    # 本番と同じビルド（サイト内検
 - 著作権への配慮: 元記事の文章をそのまま使わず自分の言葉で要約する。長い引用はしない。画像は扱わない
   - 元記事と30字以上一致する箇所があれば、自動で書き直させます
 - 社名や社内案件には触れない（「当社」「弊社」などが含まれていれば自動で書き直させます）
-- Claudeの出力はJSONで受け取り、壊れていたり形式に合わなかったりした場合は理由を伝えて最大3回まで出し直させます
+- LLMの出力はJSONで受け取り、壊れていたり形式に合わなかったりした場合は理由を伝えて最大3回まで出し直させます
 
 ## ディレクトリ構成
 
@@ -134,7 +165,8 @@ npm run build && npm run preview    # 本番と同じビルド（サイト内検
 .github/workflows/check-feeds.yml  フィードの取得確認
 scripts/generate.ts                記事生成のエントリポイント
 scripts/check-feeds.ts             フィード確認ツール
-scripts/lib/                       RSS取得・Claude呼び出し・プロンプト・Markdown出力・seen管理
+scripts/lib/                       RSS取得・プロンプト・Markdown出力・比較レポート・seen管理
+scripts/lib/llm/                   Claude / Gemini の呼び出しとJSONの検証・リトライ
 sources.json                       取得元RSSの一覧
 data/seen.json                     処理済みURL
 src/content/posts/                 記事（Markdown）

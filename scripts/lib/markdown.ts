@@ -54,38 +54,44 @@ export function uniqueFileName(dir: string, ymd: string, slug: string, used: Set
 
 const yamlString = (s: string) => JSON.stringify(s);
 
+export function articleTitle(draft: ArticleDraft, now: Date): string {
+  const { month, day } = jstParts(now);
+  return `${month}/${day} ${draft.headline.trim()}`;
+}
+
+/** 本文（要約／ポイント／業務への影響／元記事）。headingLevel で見出しの深さを変えられる */
+export function renderArticleBody(draft: ArticleDraft, item: FeedItem, headingLevel = 2): string {
+  const h = '#'.repeat(headingLevel);
+  const linkTitle = item.title.replace(/[[\]]/g, '');
+  return [
+    `${h} 要約`,
+    '',
+    draft.summary.trim(),
+    '',
+    `${h} ポイント`,
+    '',
+    ...draft.points.map((p) => `- ${p.trim()}`),
+    '',
+    `${h} 業務への影響`,
+    '',
+    draft.impact.trim(),
+    '',
+    `${h} 元記事`,
+    '',
+    `- [${linkTitle}](<${item.url}>)（${item.sourceName}）`,
+    '',
+  ].join('\n');
+}
+
 export function renderMarkdown(draft: ArticleDraft, item: FeedItem, now: Date): string {
-  const { month, day, iso } = jstParts(now);
-  const title = `${month}/${day} ${draft.headline.trim()}`;
   const frontmatter = [
     '---',
-    `title: ${yamlString(title)}`,
-    `date: ${iso}`,
+    `title: ${yamlString(articleTitle(draft, now))}`,
+    `date: ${jstParts(now).iso}`,
     `tags: [${draft.tags.map(yamlString).join(', ')}]`,
     `source_name: ${yamlString(item.sourceName)}`,
     `source_url: ${yamlString(item.url)}`,
     '---',
   ].join('\n');
-
-  const linkTitle = item.title.replace(/[[\]]/g, '');
-  const body = [
-    '## 要約',
-    '',
-    draft.summary.trim(),
-    '',
-    '## ポイント',
-    '',
-    ...draft.points.map((p) => `- ${p.trim()}`),
-    '',
-    '## 業務への影響',
-    '',
-    draft.impact.trim(),
-    '',
-    '## 元記事',
-    '',
-    `- [${linkTitle}](<${item.url}>)（${item.sourceName}）`,
-    '',
-  ].join('\n');
-
-  return `${frontmatter}\n\n${body}`;
+  return `${frontmatter}\n\n${renderArticleBody(draft, item)}`;
 }
