@@ -3,6 +3,11 @@ name: Check feeds
 # sources.json の各フィードが取得できるかを確認する（記事生成・コミットはしない）
 on:
   workflow_dispatch:
+    inputs:
+      urls:
+        description: '（任意）追加候補のフィードURL（空白区切り）。指定すると sources.json の代わりにこれらを確認する'
+        type: string
+        required: false
   push:
     paths:
       - 'sources.json'
@@ -23,4 +28,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check-feeds
+      - run: npm run check-feeds -- $URLS
+        env:
+          URLS: ${{ inputs.urls }}
