@@ -21,7 +21,7 @@ const { Content } = await render(post);
 <BaseLayout title={post.data.title} description={`${post.data.source_name}の記事を日本語で要約しました。`}>
   <article data-pagefind-body>
     <header class="post-header">
-      <h1>{post.data.title}</h1>
+      <h1 data-pagefind-ignore data-pagefind-meta="title">{post.data.title}</h1>
       <div class="meta" data-pagefind-ignore>
         <time datetime={post.data.date.toISOString()}>{formatDateHeading(post.data.date)}</time>
         <span>出典: <a href={post.data.source_url} rel="noopener" target="_blank">{post.data.source_name}</a></span>

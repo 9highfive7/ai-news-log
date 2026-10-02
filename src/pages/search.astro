@@ -22,6 +22,8 @@ import { url } from '../lib';
         showSubResults: false,
         showImages: false,
         translations: { placeholder: 'キーワードで記事を検索' },
+        // 見出しの区切りとして入る先頭の「. 」を取り除く
+        processResult: (result) => ({ ...result, excerpt: result.excerpt.replace(/^[\s.。]+/, '') }),
       });
     } catch {
       document.getElementById('search-dev-note').hidden = false;
