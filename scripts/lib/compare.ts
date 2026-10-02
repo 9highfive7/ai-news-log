@@ -20,7 +20,7 @@ export interface CompareArticle {
   judge?: JudgeResult;
 }
 
-const DISPLAY_NAME: Record<ProviderName, string> = { claude: 'Claude', gemini: 'Gemini' };
+const DISPLAY_NAME: Record<ProviderName, string> = { claude: 'Claude', gemini: 'Gemini', openai: 'GPT' };
 
 const label = (p: LlmProvider) => `${DISPLAY_NAME[p.name]}（${p.model}）`;
 const cell = (s: string) => s.replace(/\|/g, '\\|').replace(/\n/g, ' ');
@@ -40,8 +40,8 @@ export function renderCompareReport(opts: {
 
   out.push(`# モデル比較レポート（${ymd} ${iso.slice(11, 16)} JST）`, '');
   out.push(
-    `候補 ${candidates.length} 件から、それぞれのモデルが選別し、両方が選んだニュースを優先して ${articles.length} 本を両方のモデルで記事化しました。`,
-    'プロンプト・元記事の本文などの材料は両モデルで共通です。このレポートは比較用で、サイトには公開されません。',
+    `候補 ${candidates.length} 件から、それぞれのモデルが選別し、多くのモデルが選んだニュースを優先して ${articles.length} 本を全モデルで記事化しました。`,
+    'プロンプト・元記事の本文などの材料は全モデルで共通です。このレポートは比較用で、サイトには公開されません。',
     '',
   );
 
@@ -118,7 +118,7 @@ function renderJudgeSummary(judge: Judge, articles: CompareArticle[], providers:
   const out: string[] = ['## Jev による審査', ''];
   out.push(
     `TypeSafe AI の判断モデル Jev（${judge.model}）に、元記事と生成記事を渡して採点させました。`,
-    'モデル名は伏せています。総合の勝ち確率は、記事A・Bの順番を入れ替えて2回判定した平均です。',
+    'モデル名は伏せています。総合の勝ち確率は、モデルの組み合わせごと（総当たり）に記事A・Bの順番を入れ替えて2回ずつ判定し、各モデルの1対1の勝ち確率を平均したものです。',
     'Jev は理由を出さないため、気になる判定は下の記事を読んで確認してください。',
     '',
   );

@@ -1,4 +1,4 @@
-export type ProviderName = 'claude' | 'gemini';
+export type ProviderName = 'claude' | 'gemini' | 'openai';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';

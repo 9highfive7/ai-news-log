@@ -1,10 +1,10 @@
 # AIニュースログ
 
-AI関連ニュースを毎日自動で収集し、LLM（Claude または Gemini）で日本語の短い記事にまとめて蓄積するブログです。
+AI関連ニュースを毎日自動で収集し、LLM（Claude / Gemini / GPT のいずれか）で日本語の短い記事にまとめて蓄積するブログです。
 GitHub Pages で公開します（`https://9highfive7.github.io/ai-news-log/`）。
 
 - サイト: [Astro](https://astro.build/)（静的サイト）＋ [Pagefind](https://pagefind.app/)（サイト内検索）
-- 記事生成: Node.js（TypeScript）＋ Anthropic 公式 SDK / Google Gen AI SDK（どちらを使うか切り替え可能）
+- 記事生成: Node.js（TypeScript）＋ Anthropic / Google Gen AI / OpenAI の公式 SDK（どれを使うか切り替え可能）
 - 定期実行: GitHub Actions（毎朝 7:00 JST、手動実行も可）
 
 ## しくみ
@@ -28,21 +28,23 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 
 1. リポジトリの **Settings > Secrets and variables > Actions** を開く
 2. **Secrets** タブで **New repository secret** をクリック
-3. 使うモデルのキーを登録する（比較モードを使うなら両方）
+3. 使うモデルのキーを登録する（比較モードでは、キーを登録したモデルすべてを比べます）
 
 | Name | 内容 |
 | --- | --- |
 | `ANTHROPIC_API_KEY` | Anthropic の API キー（[Claude Console](https://console.anthropic.com/) で発行） |
 | `GEMINI_API_KEY` | Gemini の API キー（[Google AI Studio](https://aistudio.google.com/) で発行） |
+| `OPENAI_API_KEY` | OpenAI の API キー（[OpenAI Platform](https://platform.openai.com/) で発行） |
 | `TYPESAFE_API_KEY`（任意） | 比較モードの審査役 Jev の API キー（[TypeSafe AI](https://typesafe.ai/) で発行）。未登録なら審査なしで比較します |
 
 任意で、同じ画面の **Variables** タブから次の値を設定できます。
 
 | 名前 | 内容 | 未設定時 |
 | --- | --- | --- |
-| `LLM_PROVIDER` | 毎日の定期実行で使うモデルの種類（`claude` / `gemini`） | `claude` |
+| `LLM_PROVIDER` | 毎日の定期実行で使うモデルの種類（`claude` / `gemini` / `openai`） | `claude` |
 | `ANTHROPIC_MODEL` | Claude を使うときのモデル | `claude-haiku-4-5` |
-| `GEMINI_MODEL` | Gemini を使うときのモデル | `gemini-2.5-flash-lite` |
+| `GEMINI_MODEL` | Gemini を使うときのモデル | `gemini-3.5-flash-lite` |
+| `OPENAI_MODEL` | GPT を使うときのモデル | `gpt-6-luna` |
 | `MAX_ARTICLES` | 1日に生成する最大本数 | `5` |
 | `TYPESAFE_DEFAULT_MODEL` | 審査に使う Jev のモデル | `jev-latest` |
 
@@ -58,13 +60,13 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 新しい記事が0件でもサイトを公開したい場合（初回など）は、**force_deploy** にチェックを入れて実行してください。
 
 **dry_run** にチェックを入れると、記事を生成するだけでコミット・デプロイ・`data/seen.json` の更新は行いません。
-生成された Markdown は実行結果ページ下部の **Artifacts**（`dry-run-posts`）からダウンロードできます。
+生成された Markdown は実行結果ページの **Summary** に表示されます（**Artifacts** の `dry-run-posts` からダウンロードも可）。
 
-### 4. Claude と Gemini を比較する
+### 4. モデルを比較する
 
 **provider** で **compare** を選んで実行すると、比較モードになります。
 
-- 両方のモデルで選別し、両方が選んだニュースを優先して最大5本を、同じ材料で両方のモデルに記事化させます。
+- API キーを登録したモデル（2つ以上）それぞれで選別し、多くのモデルが選んだニュースを優先して最大5本を、同じ材料で全モデルに記事化させます。
 - 結果は実行結果ページの **Summary** にそのまま表示されます（Artifacts の `compare-report` からもダウンロード可）。
   - 集計（記事化できた本数、形式エラーでの出し直し回数、トークン数、概算費用、応答時間）
   - 選別結果の並び比べ（何を選んだか・理由）
@@ -72,10 +74,10 @@ GitHub Actions（毎朝7:00 JST / 手動実行）
 - `TYPESAFE_API_KEY` を登録していると、TypeSafe AI の判断モデル **Jev** が審査役として採点します。
   - 観点ごとの点数（1〜5）: 正確さ、日本語の自然さ、業務への有用性、見出しの分かりやすさ
   - 元記事にない内容を含んでいる確率
-  - 総合でどちらが優れているかの確率（モデル名を伏せて記事A・Bとして渡し、順番を入れ替えて2回判定した平均）
+  - 総合で優れている確率（モデル名を伏せて記事A・Bとして渡し、組み合わせごとに順番を入れ替えて2回ずつ判定し、各モデルの1対1の勝ち確率を平均）
   - Jev は文章を返さず理由は出ないので、気になる判定はレポート内の記事を読んで確認してください
 - 記事の公開・コミット・`data/seen.json` の更新は行いません。何度でも試せます。
-- どちらを使うか決めたら、Variables の `LLM_PROVIDER` に `claude` か `gemini` を設定してください。
+- どれを使うか決めたら、Variables の `LLM_PROVIDER` に `claude` / `gemini` / `openai` のいずれかを設定してください。
 
 > 概算費用は `scripts/lib/llm/index.ts` に登録した単価で計算しています。単価は変わることがあるので、正確な値は各社の料金ページで確認してください。
 
@@ -141,7 +143,7 @@ npm run generate:dry
 npm run compare
 ```
 
-`compare-output/` に比較レポート（Markdown）を出力します（両方の API キーが必要です。`.env` に `TYPESAFE_API_KEY` があれば Jev の審査も行います）。
+`compare-output/` に比較レポート（Markdown）を出力します（2つ以上のモデルの API キーが必要です。`.env` に `TYPESAFE_API_KEY` があれば Jev の審査も行います）。
 
 ### サイトの確認
 
@@ -173,7 +175,7 @@ npm run build && npm run preview    # 本番と同じビルド（サイト内検
 scripts/generate.ts                記事生成のエントリポイント
 scripts/check-feeds.ts             フィード確認ツール
 scripts/lib/                       RSS取得・プロンプト・Markdown出力・比較レポート・seen管理
-scripts/lib/llm/                   Claude / Gemini の呼び出しとJSONの検証・リトライ
+scripts/lib/llm/                   Claude / Gemini / GPT の呼び出しとJSONの検証・リトライ
 scripts/lib/judge.ts               比較モードの審査（Jev）
 sources.json                       取得元RSSの一覧
 data/seen.json                     処理済みURL

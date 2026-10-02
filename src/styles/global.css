@@ -109,8 +109,10 @@ a {
   cursor: pointer;
 }
 
-main {
-  padding: 24px 0 48px;
+/* .container の左右 padding を残したまま、上下の余白を付ける */
+main.container {
+  padding-top: 32px;
+  padding-bottom: 48px;
 }
 
 .site-footer {

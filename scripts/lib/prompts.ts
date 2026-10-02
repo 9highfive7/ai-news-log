@@ -45,6 +45,7 @@ ${JSON.stringify(list, null, 1)}
 
 重要度の高い順に最大${maxArticles}本選んでください。
 - 同じ出来事を扱う記事が複数ある場合は1本にまとめ、最も情報が充実していそうな記事（公式発表があれば公式）を id に、残りを related_ids に入れてください。
+- related_ids に入れるのは「同じ出来事」を報じた記事だけです。同じ企業やテーマでも、別の発表・別の事件はまとめないでください。
 - 選んだ記事同士で話題が重複しないようにしてください。
 - 重要なものが少なければ${maxArticles}本未満で構いません。
 
@@ -92,7 +93,9 @@ URL: ${item.url}
 </source>
 ${body ? `\n<source_text>\n${body}\n</source_text>\n` : '\n（本文は取得できなかったので、タイトルと概要の範囲で書いてください。わからないことは書かないこと）\n'}${relatedText}
 各フィールドの指示:
-- headline: 記事の見出し。日本語で20〜30字。日付は付けない。誰が何をしたかが一目でわかるように（例: "OpenAIがChatGPTに新しい音声機能を追加"）。
+- headline: 記事の見出し。20〜30字（英数字・記号も1文字として数える。30字を超えると不合格）。日付は付けない。
+  「誰が・何をした」だけを書き、補足・数値・副題・理由は入れない（それらは summary に書く）。元記事のタイトルをなぞらず、短く言い換える。
+  良い例: "OpenAIがChatGPTに新しい音声機能を追加"（25字） / "カリフォルニア州がAIのみの解雇判断を禁止"（21字） / "DeepSeekがHuawei向けAI開発ツールを公開"（27字）
 - slug: URL用の英語スラッグ。小文字英数字とハイフンのみ、3〜6単語（例: "openai-chatgpt-voice-update"）。
 - tags: 次の中から1〜3個選ぶ: ${TAG_NAMES.join(', ')}。該当する企業タグがあれば必ず入れる。日本国内の話題なら「国内」。どれにも当てはまらなければ「その他」。
 - summary: 要約。3〜5文。
@@ -112,7 +115,9 @@ const COPY_WINDOW = 30;
 export function checkArticle(draft: ArticleDraft, sourceText: string): string | null {
   const len = [...draft.headline].length;
   if (len < HEADLINE_MIN || len > HEADLINE_MAX) {
-    return `headline が${len}字です。20〜30字にしてください。`;
+    return len > HEADLINE_MAX
+      ? `headline「${draft.headline}」は${len}字で長すぎます。あと${len - 30}字以上削って20〜30字にしてください。補足・数値・副題を外し「誰が・何をした」だけにしてください。`
+      : `headline「${draft.headline}」は${len}字で短すぎます。20〜30字にしてください。`;
   }
   const all = [draft.headline, draft.summary, ...draft.points, draft.impact].join('\n');
   const internal = INTERNAL_WORDS.find((w) => all.includes(w));

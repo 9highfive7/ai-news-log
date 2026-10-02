@@ -1,20 +1,33 @@
 import { createClaudeProvider } from './claude.ts';
 import { createGeminiProvider } from './gemini.ts';
+import { createOpenAIProvider } from './openai.ts';
 import type { LlmProvider, ProviderName } from './types.ts';
 
-export const PROVIDERS: ProviderName[] = ['claude', 'gemini'];
+export const PROVIDERS: ProviderName[] = ['claude', 'gemini', 'openai'];
 
 const API_KEY_ENV: Record<ProviderName, string> = {
   claude: 'ANTHROPIC_API_KEY',
   gemini: 'GEMINI_API_KEY',
+  openai: 'OPENAI_API_KEY',
 };
+
+const FACTORIES: Record<ProviderName, () => LlmProvider> = {
+  claude: createClaudeProvider,
+  gemini: createGeminiProvider,
+  openai: createOpenAIProvider,
+};
+
+/** API キーが設定されているか */
+export function hasApiKey(name: ProviderName): boolean {
+  return Boolean(process.env[API_KEY_ENV[name]]?.trim());
+}
 
 export function createProvider(name: ProviderName): LlmProvider {
   const keyEnv = API_KEY_ENV[name];
-  if (!process.env[keyEnv]) {
+  if (!hasApiKey(name)) {
     throw new Error(`${keyEnv} が設定されていません（${name} を使うには .env か環境変数で設定してください）`);
   }
-  return name === 'claude' ? createClaudeProvider() : createGeminiProvider();
+  return FACTORIES[name]();
 }
 
 /**
@@ -24,7 +37,8 @@ export function createProvider(name: ProviderName): LlmProvider {
  */
 const PRICES: Record<string, [number, number]> = {
   'claude-haiku-4-5': [1, 5],
-  'gemini-2.5-flash-lite': [0.1, 0.4],
+  'gemini-3.5-flash-lite': [0.3, 2.5],
+  'gpt-6-luna': [0.1, 0.5],
 };
 
 export function estimateCostUsd(model: string, inputTokens: number, outputTokens: number): number | null {
