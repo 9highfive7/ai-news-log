@@ -13,7 +13,7 @@ const counts = TAGS.map((tag) => ({ ...tag, count: posts.filter((p) => p.data.ta
     {
       counts.map((tag) => (
         <li>
-          <a class="tag" href={url(`tags/${tag.slug}/`)}>
+          <a class={`tag tag--${tag.slug}`} href={url(`tags/${tag.slug}/`)}>
             {tag.name}
             <span class="tag-count">{tag.count}</span>
           </a>

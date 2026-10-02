@@ -1,36 +1,70 @@
+/* =========================================================
+   AIニュースログ — 切り抜きスクラップ
+   コルクボードに、ニュースの切り抜き・付箋・紙片を貼っていく見た目。
+   傾けるのは切り抜き・付箋・紙片の単位だけ（最大1.2度、スマホでは半分）。
+   ========================================================= */
+
 :root {
-  --bg: #ffffff;
-  --bg-soft: #f5f6f8;
-  --text: #1d2024;
-  --text-muted: #5f6670;
-  --border: #e3e6ea;
-  --accent: #2456c9;
-  --accent-soft: #e8eefb;
-  --radius: 8px;
+  --board: #c9b08a;
+  --board-dot: rgba(70, 45, 20, 0.16);
+  --board-text: #2a2622; /* ボードの上に直接書く文字（タグ一覧の見出しなど） */
+  --paper: #fbfaf6;
+  --ink: #2a2622;
+  --ink-sub: #3f3a34;
+  --ink-muted: #5a524a;
+  --blue-ink: #2a4b8d;
+  --date-ink: #233f78;
+  --red-pen: #c8332a;
+  --sticky: #ffe86b;
+  --tape: rgba(244, 232, 180, 0.82);
+  --focus: #233f78;
+
+  --shadow-clip: 0 2px 3px rgba(0, 0, 0, 0.18), 0 10px 18px rgba(0, 0, 0, 0.08);
+  --shadow-sticky: 0 6px 10px rgba(0, 0, 0, 0.15);
+  --shadow-chip: 0 1px 2px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.08);
+
+  --font-title: 'Dela Gothic One', sans-serif;
+  --font-head: 'Shippori Mincho', serif;
+  --font-body: 'Zen Kaku Gothic New', sans-serif;
+  --font-hand: 'Klee One', cursive;
+
+  /* 傾きの倍率（スマホでは半分にする） */
+  --tilt-scale: 1;
+  --measure: 40em;
   color-scheme: light;
 }
 
+/* ダークモード（夜のコルクボード）。紙の上の文字色はライトと同じ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --board: #2b241d;
+    --board-dot: rgba(255, 235, 200, 0.08);
+    --board-text: #ede3d0;
+    --paper: #e6e0d2;
+    --date-ink: #b9c9ee;
+    --red-pen: #b42c24;
+    --sticky: #e6d25e;
+    --tape: rgba(244, 232, 180, 0.45);
+    --focus: #ede3d0;
+    color-scheme: dark;
+  }
+}
 :root[data-theme='dark'] {
-  --bg: #15171a;
-  --bg-soft: #1e2125;
-  --text: #e6e8eb;
-  --text-muted: #a0a7b0;
-  --border: #2e3237;
-  --accent: #82a9ff;
-  --accent-soft: #23304d;
+  --board: #2b241d;
+  --board-dot: rgba(255, 235, 200, 0.08);
+  --board-text: #ede3d0;
+  --paper: #e6e0d2;
+  --date-ink: #b9c9ee;
+  --red-pen: #b42c24;
+  --sticky: #e6d25e;
+  --tape: rgba(244, 232, 180, 0.45);
+  --focus: #ede3d0;
   color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #15171a;
-    --bg-soft: #1e2125;
-    --text: #e6e8eb;
-    --text-muted: #a0a7b0;
-    --border: #2e3237;
-    --accent: #82a9ff;
-    --accent-soft: #23304d;
-    color-scheme: dark;
+@media (max-width: 767px) {
+  :root {
+    --tilt-scale: 0.5;
   }
 }
 
@@ -46,216 +80,676 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
-  font-size: 16px;
-  line-height: 1.75;
+  background-color: var(--board);
+  background-image: radial-gradient(var(--board-dot) 1px, transparent 1.6px);
+  background-size: 14px 14px;
+  color: var(--board-text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
   overflow-wrap: anywhere;
+  overflow-x: clip;
 }
 
 a {
-  color: var(--accent);
+  color: var(--blue-ink);
   text-underline-offset: 0.2em;
 }
 
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .container {
-  max-width: 44rem;
+  width: 100%;
+  max-width: 72rem;
   margin: 0 auto;
   padding: 0 16px;
 }
 
-/* header */
-.site-header {
-  border-bottom: 1px solid var(--border);
+@media (min-width: 768px) {
+  .container {
+    padding: 0 28px;
+  }
 }
+
+main.container {
+  padding-top: 16px;
+  padding-bottom: 56px;
+}
+
+/* ---------- 共通部品 ---------- */
+
+/* 切り抜き・付箋・紙片の傾き。--tilt を変えるだけで角度が決まる */
+.card,
+.card__points,
+.intro__lead,
+.site-title,
+.site-nav a,
+.theme-toggle,
+.site-footer p,
+.notice,
+.post-nav a,
+.pagination a {
+  transform: rotate(calc(var(--tilt, 0deg) * var(--tilt-scale)));
+}
+
+/* マスキングテープ */
+.card::before,
+.site-title::before,
+article[data-pagefind-body]::before {
+  content: '';
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 92px;
+  height: 22px;
+  background: var(--tape);
+  transform: translateX(-50%) rotate(-3deg);
+  pointer-events: none;
+}
+
+/* 青インクのスタンプ（タグ）。タグごとの色分けはしない */
+.tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border: 1.5px solid var(--blue-ink);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--blue-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.tag:hover {
+  text-decoration: underline;
+}
+
+/* ---------- ヘッダー ---------- */
+
 .site-header .container {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  gap: 16px;
+  padding-top: 24px;
+  padding-bottom: 8px;
 }
+
 .site-title {
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--text);
+  --tilt: -1.2deg;
+  position: relative;
+  display: inline-block;
+  padding: 10px 18px 8px;
+  background: var(--paper);
+  box-shadow: var(--shadow-clip);
+  color: var(--ink);
+  font-family: var(--font-title);
+  font-size: 1.625rem; /* 26px */
+  font-weight: 400;
+  line-height: 1.3;
   text-decoration: none;
 }
+
 .site-nav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  font-size: 0.9rem;
+  gap: 10px;
 }
+
 .site-nav a,
 .theme-toggle {
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: 6px 10px;
-  border-radius: var(--radius);
-}
-.site-nav a:hover,
-.theme-toggle:hover {
-  background: var(--bg-soft);
-  color: var(--text);
-}
-.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 0;
-  background: none;
+  background: var(--paper);
+  box-shadow: var(--shadow-chip);
+  color: var(--ink);
   font: inherit;
+  font-size: 0.875rem;
+  text-decoration: none;
   cursor: pointer;
 }
 
-/* .container の左右 padding を残したまま、上下の余白を付ける */
-main.container {
-  padding-top: 32px;
-  padding-bottom: 48px;
+.site-nav a:nth-of-type(1) {
+  --tilt: 0.8deg;
 }
-
-.site-footer {
-  border-top: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  padding: 16px 0 32px;
+.site-nav a:nth-of-type(2) {
+  --tilt: -0.6deg;
 }
-
-/* list */
-.page-title {
-  font-size: 1.4rem;
-  line-height: 1.4;
-  margin: 0 0 8px;
+.site-nav a:nth-of-type(3) {
+  --tilt: 0.5deg;
 }
-.page-lead {
-  color: var(--text-muted);
-  margin: 0 0 24px;
-  font-size: 0.9rem;
-}
-.date-heading {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin: 32px 0 8px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
-.date-heading:first-of-type {
-  margin-top: 8px;
-}
-.post-list {
-  list-style: none;
-  margin: 0;
+.theme-toggle {
+  --tilt: -0.8deg;
   padding: 0;
 }
-.post-card {
-  padding: 12px 0;
-}
-.post-card + .post-card {
-  border-top: 1px dashed var(--border);
-}
-.post-card h3 {
-  font-size: 1.05rem;
-  line-height: 1.5;
-  margin: 0 0 4px;
-}
-.post-card h3 a {
-  color: var(--text);
-  text-decoration: none;
-}
-.post-card h3 a:hover {
-  color: var(--accent);
+
+.site-nav a:hover {
   text-decoration: underline;
 }
+
+/* ---------- トップページ ---------- */
+
+/* サイトの説明は、日付見出しの右に貼った付箋 */
+.intro__lead {
+  --tilt: 1.2deg;
+  margin: 0;
+  padding: 14px 18px;
+  background: var(--sticky);
+  box-shadow: var(--shadow-sticky);
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.intro {
+  margin: 8px 0 20px;
+}
+
+@media (min-width: 768px) {
+  .intro {
+    float: right;
+    width: min(320px, 36%);
+    margin: 12px 0 20px 24px;
+  }
+}
+
+.day {
+  margin-top: 48px;
+}
+
+.intro + .day {
+  margin-top: 16px;
+}
+
+.day__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0 0 28px;
+  color: var(--date-ink);
+  font-family: var(--font-hand);
+  font-size: clamp(1.75rem, 6vw, 2.375rem); /* 最大38px */
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.day__count {
+  font-size: 1.125rem;
+}
+
+/* 切り抜き（記事カード） */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: 36px 28px;
+}
+
+.card {
+  --tilt: -1.2deg;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 22px 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-clip);
+  color: var(--ink);
+}
+
+.cards .card:nth-child(5n + 2) {
+  --tilt: 0.8deg;
+}
+.cards .card:nth-child(5n + 3) {
+  --tilt: -0.4deg;
+}
+.cards .card:nth-child(5n + 4) {
+  --tilt: 1.1deg;
+}
+.cards .card:nth-child(5n + 5) {
+  --tilt: -0.8deg;
+}
+
+/* ホバーで傾きが0になり、2px浮く（動きを減らす設定のときは何もしない） */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.card__title {
+  margin: 0 0 10px;
+  font-family: var(--font-head);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.card__title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* カード全体をクリックできるようにする */
+.card__title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.card__title a:hover {
+  text-decoration: underline;
+}
+
+.card__excerpt {
+  display: -webkit-box;
+  margin: 0 0 16px;
+  overflow: hidden;
+  color: var(--ink-sub);
+  line-height: 1.75;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: auto;
+}
+
+.card__source {
+  color: var(--ink-muted);
+  font-family: var(--font-hand);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* タグはカード全体のリンクより上に置いて、個別に押せるようにする */
+.card__tags {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 最新記事: 横幅いっぱいの大きな切り抜き */
+.card--hero {
+  --tilt: 0.4deg;
+  clear: both;
+  margin-bottom: 40px;
+  padding: 36px 24px 28px;
+}
+
+.card--hero .card__title {
+  font-size: clamp(1.625rem, 4vw, 2.25rem); /* 最大36px */
+  line-height: 1.35;
+  max-width: 24em;
+}
+
+.card--hero .card__excerpt {
+  max-width: var(--measure);
+}
+
+@media (min-width: 900px) {
+  .card--hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 36%);
+    grid-auto-rows: min-content;
+    column-gap: 40px;
+    padding: 40px 40px 32px;
+  }
+
+  .card--hero > * {
+    grid-column: 1;
+  }
+
+  .card--hero > .card__points {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: start;
+  }
+}
+
+/* 赤ペンで丸を付けた「要チェック」（ページ内で1か所だけ） */
+.card__eyebrow {
+  position: relative;
+  align-self: flex-start;
+  justify-self: start;
+  margin: 0 0 14px;
+  padding: 4px 16px;
+  color: var(--red-pen);
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.card__circle {
+  position: absolute;
+  inset: -4px -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 8px);
+  overflow: visible;
+}
+
+.card__circle path {
+  fill: none;
+  stroke: var(--red-pen);
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* 付箋のポイント */
+.card__points {
+  --tilt: 1.2deg;
+  margin: 24px 0 0;
+  padding: 18px 20px 16px;
+  background: var(--sticky);
+  box-shadow: var(--shadow-sticky);
+  color: var(--ink);
+}
+
+@media (min-width: 900px) {
+  .card__points {
+    margin: 0;
+  }
+}
+
+.card__points-title {
+  margin: 0 0 6px;
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.card__points ul {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.card__points li + li {
+  margin-top: 8px;
+}
+
+/* ---------- 記事ページ ---------- */
+
+/* 記事全体を1枚の大きな切り抜きにする。長文なので傾けない */
+article[data-pagefind-body] {
+  position: relative;
+  max-width: calc(var(--measure) + 96px);
+  margin: 24px 0 0;
+  padding: 44px 48px 40px;
+  background: var(--paper);
+  box-shadow: var(--shadow-clip);
+  color: var(--ink);
+}
+
+@media (max-width: 767px) {
+  article[data-pagefind-body] {
+    padding: 36px 20px 28px;
+  }
+}
+
+.post-header,
+.post-body {
+  max-width: var(--measure);
+}
+
+.post-header h1 {
+  margin: 0 0 14px;
+  font-family: var(--font-head);
+  font-size: clamp(1.625rem, 4vw, 2rem);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  gap: 8px 12px;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
 }
 
-.tag {
-  display: inline-block;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.75rem;
-  line-height: 1.8;
-  text-decoration: none;
-}
-.tag:hover {
-  text-decoration: underline;
-}
-.tag-count {
-  color: var(--text-muted);
-  margin-left: 4px;
+.meta__source {
+  font-family: var(--font-hand);
+  font-weight: 600;
 }
 
-/* article */
-.post-header h1 {
-  font-size: 1.45rem;
-  line-height: 1.45;
-  margin: 0 0 8px;
+.post-body {
+  font-size: 1rem;
+  line-height: 1.9;
 }
+
+/* 小見出し（要約・業務への影響・元記事）は手書き風。左の縦線は使わない */
 .post-body h2 {
-  font-size: 1.1rem;
-  margin: 28px 0 8px;
-  padding-left: 10px;
-  border-left: 4px solid var(--accent);
-  line-height: 1.5;
+  margin: 40px 0 8px;
+  font-family: var(--font-hand);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
+
+.post-body p {
+  margin: 0;
+}
+
+.post-body p + p {
+  margin-top: 2.85em; /* 行送り1.9emの1.5倍 */
+}
+
 .post-body ul {
+  margin: 8px 0 0;
   padding-left: 1.4em;
 }
+
 .post-body li + li {
-  margin-top: 4px;
-}
-.post-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 40px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  font-size: 0.9rem;
-}
-.notice {
-  margin-top: 32px;
-  padding: 12px 14px;
-  background: var(--bg-soft);
-  border-radius: var(--radius);
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  margin-top: 8px;
 }
 
+/* 「ポイント」は付箋に入れる。
+   本文は Markdown のままなので、見出しと直後の箇条書きを同じ点（境目の中央）を軸に
+   同じ角度で傾けて、1枚の付箋に見せる */
+.post-body > h2:first-child,
+.post-body > h2:first-child + ul {
+  --tilt: 0.8deg;
+  margin-left: 0;
+  margin-right: 0;
+  background: var(--sticky);
+  transform: rotate(calc(var(--tilt) * var(--tilt-scale)));
+}
+
+.post-body > h2:first-child {
+  margin: 32px 0 0;
+  padding: 16px 22px 4px;
+  font-size: 1.125rem;
+  box-shadow: 0 0 10px -4px rgba(0, 0, 0, 0.15);
+  transform-origin: 50% 100%;
+}
+
+.post-body > h2:first-child + ul {
+  margin: 0 0 8px;
+  padding: 4px 22px 18px calc(22px + 1.4em);
+  line-height: 1.8;
+  box-shadow: 0 10px 10px -4px rgba(0, 0, 0, 0.15);
+  transform-origin: 50% 0;
+}
+
+/* AI要約の注意書きは小さな付箋 */
+.notice {
+  --tilt: -0.8deg;
+  max-width: 32rem;
+  margin: 32px 0 0;
+  padding: 12px 16px;
+  background: var(--sticky);
+  box-shadow: var(--shadow-sticky);
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* 次の記事へのリンクは小さな紙片のボタン */
+.post-nav,
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  margin-top: 32px;
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.post-nav > span,
+.pagination > span {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .post-nav > span {
+    max-width: 48%;
+  }
+}
+
+.post-nav a,
+.pagination a {
+  --tilt: -0.6deg;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-chip);
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.post-nav span:last-child a,
+.pagination span:last-child a {
+  --tilt: 0.6deg;
+}
+
+.post-nav a:hover,
+.pagination a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- タグ一覧・タグ別・検索 ---------- */
+
+.page-title {
+  margin: 24px 0 8px;
+  color: var(--date-ink);
+  font-family: var(--font-hand);
+  font-size: clamp(1.75rem, 6vw, 2.375rem);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.page-lead {
+  margin: 0 0 24px;
+  color: var(--board-text);
+}
+
+.page-lead + .day {
+  margin-top: 24px;
 }
 
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
+  gap: 12px;
   padding: 0;
-}
-.tag-cloud .tag {
-  font-size: 0.9rem;
-  padding: 2px 12px;
+  list-style: none;
 }
 
-/* Pagefind UI */
+.tag-cloud .tag {
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-chip);
+}
+
+.tag-count {
+  margin-left: 6px;
+  color: var(--ink-muted);
+}
+
 #search {
+  max-width: 48rem;
+  padding: 20px;
+  background: var(--paper);
+  box-shadow: var(--shadow-clip);
+  color: var(--ink);
   --pagefind-ui-scale: 0.9;
-  --pagefind-ui-primary: var(--accent);
-  --pagefind-ui-text: var(--text);
-  --pagefind-ui-background: var(--bg);
-  --pagefind-ui-border: var(--border);
-  --pagefind-ui-tag: var(--bg-soft);
+  --pagefind-ui-primary: var(--blue-ink);
+  --pagefind-ui-text: var(--ink);
+  --pagefind-ui-background: var(--paper);
+  --pagefind-ui-border: var(--ink-muted);
+  --pagefind-ui-tag: var(--paper);
+  --pagefind-ui-border-radius: 0;
   --pagefind-ui-font: inherit;
+}
+
+/* ---------- フッター ---------- */
+
+.site-footer {
+  padding: 8px 0 48px;
+}
+
+.site-footer p {
+  --tilt: -0.5deg;
+  display: inline-block;
+  max-width: var(--measure);
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-chip);
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* ---------- スマホ: タップ領域を44px以上に（見た目の大きさは変えない） ---------- */
+
+@media (max-width: 767px) {
+  .tag::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
 }

@@ -59,18 +59,32 @@ export function articleTitle(draft: ArticleDraft, now: Date): string {
   return `${month}/${day} ${draft.headline.trim()}`;
 }
 
-/** 本文（要約／ポイント／業務への影響／元記事）。headingLevel で見出しの深さを変えられる */
+/** 要約が長い場合（段落分けされていない150字超）は、文の区切りで2〜3段落に分ける */
+export function toParagraphs(text: string): string {
+  const trimmed = text.trim();
+  if (/\n\s*\n/.test(trimmed)) return trimmed.replace(/\n\s*\n+/g, '\n\n');
+  if ([...trimmed].length <= 150) return trimmed;
+  const sentences = trimmed.match(/[^。！？]+[。！？」』）]*/g)?.map((s) => s.trim()).filter(Boolean) ?? [trimmed];
+  if (sentences.length < 3) return trimmed;
+  const groups = sentences.length >= 6 ? 3 : 2;
+  const size = Math.ceil(sentences.length / groups);
+  const paragraphs: string[] = [];
+  for (let i = 0; i < sentences.length; i += size) paragraphs.push(sentences.slice(i, i + size).join(''));
+  return paragraphs.join('\n\n');
+}
+
+/** 本文（ポイント／要約／業務への影響／元記事）。headingLevel で見出しの深さを変えられる */
 export function renderArticleBody(draft: ArticleDraft, item: FeedItem, headingLevel = 2): string {
   const h = '#'.repeat(headingLevel);
   const linkTitle = item.title.replace(/[[\]]/g, '');
   return [
-    `${h} 要約`,
-    '',
-    draft.summary.trim(),
-    '',
     `${h} ポイント`,
     '',
     ...draft.points.map((p) => `- ${p.trim()}`),
+    '',
+    `${h} 要約`,
+    '',
+    toParagraphs(draft.summary),
     '',
     `${h} 業務への影響`,
     '',
@@ -89,6 +103,7 @@ export function renderMarkdown(draft: ArticleDraft, item: FeedItem, now: Date): 
     `title: ${yamlString(articleTitle(draft, now))}`,
     `date: ${jstParts(now).iso}`,
     `tags: [${draft.tags.map(yamlString).join(', ')}]`,
+    `lead: ${yamlString(draft.lead.trim())}`,
     `source_name: ${yamlString(item.sourceName)}`,
     `source_url: ${yamlString(item.url)}`,
     '---',

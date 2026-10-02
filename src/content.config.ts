@@ -11,6 +11,8 @@ const posts = defineCollection({
     tags: z.array(z.enum(TAG_NAMES)).default([]),
     source_name: z.string(),
     source_url: z.url(),
+    /** 一覧用の短い要約（全角60〜80字）。古い記事にはない */
+    lead: z.string().optional(),
   }),
 });
 

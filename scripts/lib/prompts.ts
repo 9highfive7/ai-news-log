@@ -68,10 +68,15 @@ export const ARTICLE_SYSTEM = `あなたはAIニュースを日本語の短い�
 export const HEADLINE_MIN = 18;
 export const HEADLINE_MAX = 32;
 
+/** 一覧用の短い要約（lead）の字数。指示は全角60〜80字、検証は多少の幅を持たせる */
+export const LEAD_MIN = 50;
+export const LEAD_MAX = 90;
+
 export const ArticleSchema = z.object({
   headline: z.string().min(1),
   slug: z.string().min(1),
   tags: z.array(z.enum(TAG_NAMES)).min(1).max(3),
+  lead: z.string().min(1),
   summary: z.string().min(1),
   points: z.array(z.string().min(1)).min(2).max(5),
   impact: z.string().min(1),
@@ -98,12 +103,13 @@ ${body ? `\n<source_text>\n${body}\n</source_text>\n` : '\n（本文は取得で
   良い例: "OpenAIがChatGPTに新しい音声機能を追加"（25字） / "カリフォルニア州がAIのみの解雇判断を禁止"（21字） / "DeepSeekがHuawei向けAI開発ツールを公開"（27字）
 - slug: URL用の英語スラッグ。小文字英数字とハイフンのみ、3〜6単語（例: "openai-chatgpt-voice-update"）。
 - tags: 次の中から1〜3個選ぶ: ${TAG_NAMES.join(', ')}。該当する企業タグがあれば必ず入れる。日本国内の話題なら「国内」。どれにも当てはまらなければ「その他」。
-- summary: 要約。3〜5文。
+- lead: 一覧ページに表示する短い要約。全角60〜80字の1〜2文で、文として完結させる（「…」で終わらせない）。見出しの言い換えではなく、何が起きたか・何が新しいかが伝わるようにする。
+- summary: 要約。3〜5文。4文以上になる場合は、内容の切れ目で2〜3段落に分け、段落の間は空行（\n\n）にする。
 - points: 押さえておきたいポイント。3つ程度の短い文。
 - impact: 業務への影響。一般的なIT企業のエンジニア・PM目線で2〜3文。
 
 出力形式:
-{"headline": "...", "slug": "...", "tags": ["..."], "summary": "...", "points": ["...", "...", "..."], "impact": "..."}`;
+{"headline": "...", "slug": "...", "tags": ["..."], "lead": "...", "summary": "...", "points": ["...", "...", "..."], "impact": "..."}`;
 }
 
 /** 社内事情に触れる語。記事に含まれていたら出し直させる */
@@ -120,7 +126,14 @@ export function checkArticle(draft: ArticleDraft, sourceText: string): string | 
       ? `headline「${draft.headline}」は${len}字で長すぎます。${len - 25}字ほど削って25字前後（20〜30字）にしてください。補足・数値・副題を外し「誰が・何をした」だけにしてください。削りすぎて20字未満にもしないでください。`
       : `headline「${draft.headline}」は${len}字で短すぎます。${25 - len}字ほど足して25字前後（20〜30字）にしてください。主語（企業名など）と、何をしたか（発表・公開・提供開始など）が両方わかる形にしてください。`;
   }
-  const all = [draft.headline, draft.summary, ...draft.points, draft.impact].join('\n');
+  const leadLen = [...draft.lead.trim()].length;
+  if (leadLen < LEAD_MIN || leadLen > LEAD_MAX) {
+    return `lead「${draft.lead}」は${leadLen}字です。全角60〜80字（目安70字）の、文として完結した1〜2文にしてください。`;
+  }
+  if (/[…\.]{1,3}$|[、,]$/.test(draft.lead.trim())) {
+    return `lead「${draft.lead}」が途中で終わっています。文として完結させ、「。」で終えてください。`;
+  }
+  const all = [draft.headline, draft.lead, draft.summary, ...draft.points, draft.impact].join('\n');
   const internal = INTERNAL_WORDS.find((w) => all.includes(w));
   if (internal) return `「${internal}」のような社内事情に触れる表現は使わないでください。`;
   const copied = findCopiedSpan(all, sourceText);

@@ -31,16 +31,42 @@ export function formatDateHeading(date: Date): string {
 }
 
 /** 記事を日付（日本時間）ごとにまとめる。順序は posts の並びを保つ */
-export function groupByDate(posts: Post[]): { key: string; heading: string; posts: Post[] }[] {
-  const groups: { key: string; heading: string; posts: Post[] }[] = [];
+export function groupByDate(posts: Post[]): { key: string; heading: string; label: string; posts: Post[] }[] {
+  const groups: { key: string; heading: string; label: string; posts: Post[] }[] = [];
   for (const post of posts) {
     const key = dateKey(post.data.date);
     let group = groups.at(-1);
     if (!group || group.key !== key) {
-      group = { key, heading: formatDateHeading(post.data.date), posts: [] };
+      group = { key, heading: formatDateHeading(post.data.date), label: formatDayLabel(post.data.date), posts: [] };
       groups.push(group);
     }
     group.posts.push(post);
   }
   return groups;
+}
+
+/** 一覧表示用のタイトル。先頭の「M/D 」を外し、社名・製品名が先頭に来るようにする（記事データは変えない） */
+export function listTitle(post: Post): string {
+  return post.data.title.replace(/^\d{1,2}\/\d{1,2}\s+/, '');
+}
+
+/** 一覧用の短い要約。lead があればそれを、なければ本文の「要約」をそのまま使う（行数は CSS で制限する） */
+export function listSummary(post: Post): string {
+  if (post.data.lead) return post.data.lead;
+  // 段落の区切り（改行）は日本語なので空白を入れずにつなぐ
+  return post.body?.match(/## 要約\s+([\s\S]*?)\n##/)?.[1]?.replace(/\s*\n\s*/g, '').replace(/\s+/g, ' ').trim() ?? '';
+}
+
+/** 日付見出し用の短い表記: 10月2日（金） */
+export function formatDayLabel(date: Date): string {
+  return formatDateHeading(date).replace(/^\d+年/, '');
+}
+
+/** 本文の「ポイント」の箇条書き（トップの最新記事で付箋に表示する） */
+export function listPoints(post: Post): string[] {
+  const section = post.body?.match(/## ポイント\s+([\s\S]*?)(?:\n##|$)/)?.[1] ?? '';
+  return section
+    .split('\n')
+    .map((line) => line.match(/^\s*[-*]\s+(.+)$/)?.[1]?.trim())
+    .filter((s): s is string => Boolean(s));
 }
