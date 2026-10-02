@@ -90,6 +90,7 @@ jobs:
               echo; echo "---"; echo; echo "### $(basename "$f")"; echo; echo '```markdown'; cat "$f"; echo '```'
             done
           } >> "$GITHUB_STEP_SUMMARY"
+          tail -n +1 dry-run-output/*.md
 
       - name: Upload dry-run articles
         if: inputs.dry_run && steps.generate.outputs.count != '0'
