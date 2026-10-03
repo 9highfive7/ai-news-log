@@ -180,6 +180,9 @@ export function checkArticle(draft: ArticleDraft, sourceText: string): string | 
   return null;
 }
 
+/** 一致箇所のうち、日本語の文字がこれより少ないもの（製品名・社名の列挙など）は引き写しとみなさない */
+const COPY_MIN_JAPANESE = 10;
+
 /** 生成文の中に、元テキストと COPY_WINDOW 文字以上一致する箇所があれば返す */
 export function findCopiedSpan(generated: string, source: string): string | null {
   if (!source) return null;
@@ -188,7 +191,9 @@ export function findCopiedSpan(generated: string, source: string): string | null
   const gen = [...norm(generated)];
   for (let i = 0; i + COPY_WINDOW <= gen.length; i++) {
     const span = gen.slice(i, i + COPY_WINDOW).join('');
-    if (src.includes(span)) return span;
+    if (!src.includes(span)) continue;
+    const japanese = span.match(/[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/gu)?.length ?? 0;
+    if (japanese >= COPY_MIN_JAPANESE) return span;
   }
   return null;
 }

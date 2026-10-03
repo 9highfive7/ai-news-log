@@ -15,7 +15,7 @@ import { join } from 'node:path';
 import { renderCompareReport, type CompareArticle, type CompareSelection } from './lib/compare.ts';
 import { createJudge } from './lib/judge.ts';
 import { fetchArticleText, fetchFeed, loadSources, normalizeUrl, type FeedItem } from './lib/feeds.ts';
-import { createProvider, hasApiKey, isFatalApiError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
+import { createProvider, hasApiKey, isFatalApiError, isRateLimitError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
 import { callJson, getStats } from './lib/llm/json.ts';
 import { jstParts, renderArticleBody, renderMarkdown, sanitizeSlug, uniqueFileName } from './lib/markdown.ts';
 import {
@@ -234,6 +234,10 @@ interface PlanEntry {
   bodyOnly?: boolean;
 }
 
+/** 計画ファイルの記事化で利用上限にかかったときの待ち時間と試行回数 */
+const RATE_LIMIT_WAIT_MS = 60_000;
+const RATE_LIMIT_ATTEMPTS = 3;
+
 /** 既存の記事ファイルから、残すフロントマターと元記事の情報を読む（RSS から消えた記事を書き直すため） */
 async function readPostFile(fileName: string): Promise<{ frontmatter: string; ymd: string; item: FeedItem }> {
   const text = await readFile(join(POSTS_DIR, fileName), 'utf8');
@@ -291,25 +295,33 @@ async function runPlan(provider: LlmProvider, path: string): Promise<string[]> {
       `記事化: [${item.sourceName}] ${item.title}（${date}・${entry.rank ?? '-'}位${related.length ? `・関連 ${related.length} 件` : ''}` +
         `${entry.bodyOnly ? '・本文のみ' : ''}${found ? '' : '・RSSになし'}）`,
     );
-    try {
-      const body = await fetchBody(item);
-      if (entry.bodyOnly && existing) {
-        if (!body) {
-          console.error('  ✗ 元記事の本文を取得できないため、既存の記事をそのまま残します');
+    const body = await fetchBody(item);
+    if (entry.bodyOnly && existing && !body) {
+      console.error('  ✗ 元記事の本文を取得できないため、既存の記事をそのまま残します');
+      continue;
+    }
+    // 本数が多いと無料枠などの利用上限（1分あたりの回数）にかかるので、そのときは待ってやり直す
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const draft = await writeArticle(provider, item, related, body);
+        if (entry.bodyOnly && existing) {
+          await writeFile(join(POSTS_DIR, entry.replace!), `${existing.frontmatter}\n\n${renderArticleBody(draft, existing.item)}`);
+        } else {
+          const fileName = entry.replace ?? uniqueFileName(POSTS_DIR, date, sanitizeSlug(draft.slug), usedNames);
+          await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, new Date(`${date}T12:00:00+09:00`), entry.rank));
+        }
+        done.push(item.url);
+        console.log(`  → src/content/posts/${entry.replace ?? '(新規)'}`);
+      } catch (err) {
+        if (isFatalApiError(err)) throw err;
+        if (isRateLimitError(err) && attempt < RATE_LIMIT_ATTEMPTS) {
+          console.warn(`  利用上限にかかったため ${RATE_LIMIT_WAIT_MS / 1000} 秒待ってやり直します (${attempt}/${RATE_LIMIT_ATTEMPTS})`);
+          await new Promise((r) => setTimeout(r, RATE_LIMIT_WAIT_MS));
           continue;
         }
-        const draft = await writeArticle(provider, item, related, body);
-        await writeFile(join(POSTS_DIR, entry.replace!), `${existing.frontmatter}\n\n${renderArticleBody(draft, existing.item)}`);
-      } else {
-        const draft = await writeArticle(provider, item, related, body);
-        const fileName = entry.replace ?? uniqueFileName(POSTS_DIR, date, sanitizeSlug(draft.slug), usedNames);
-        await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, new Date(`${date}T12:00:00+09:00`), entry.rank));
+        console.error(`  ✗ 記事化に失敗しました: ${errorMessage(err).slice(0, 300)}`);
       }
-      done.push(item.url);
-      console.log(`  → src/content/posts/${entry.replace ?? '(新規)'}`);
-    } catch (err) {
-      if (isFatalApiError(err)) throw err;
-      console.error(`  ✗ 記事化に失敗しました: ${errorMessage(err)}`);
+      break;
     }
   }
   if (plan.entries.length > 0 && done.length === 0) throw new Error('計画ファイルの記事を1本も記事化できませんでした');
