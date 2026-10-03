@@ -22,10 +22,6 @@ Amazon Bedrock AgentCoreに、AWSが管理するEC2インスタンス上で長�
 
 AWSのブログでは、音楽制作を例に、作曲・配信・コンプライアンス確認の3つの専門エージェントを連携させる手順を紹介している。
 
-## 業務への影響
-
-複雑なマルチエージェントシステムを開発・運用する際、インフラ構築や長時間の状態管理の負担を減らせる。複数のチームが別々にエージェントを開発しながら、共有環境で連携させる構成の参考になる。
-
 ## 元記事
 
 - [Build a multi-agent music production pipeline on Amazon Bedrock AgentCore Runtime Instances](<https://aws.amazon.com/blogs/machine-learning/build-a-multi-agent-music-production-pipeline-on-amazon-bedrock-agentcore-runtime-instances/>)（AWS Machine Learning Blog）

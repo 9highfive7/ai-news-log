@@ -22,10 +22,6 @@ World Labsは、映像データなどを使って物理世界の予測やシミ�
 
 買収に伴い、Fei-Fei Li氏はAMDのエグゼクティブ・バイス・プレジデント兼チーフサイエンティストに就任する。AMDには、Nvidiaが優位に立つロボット工学や物理AIの分野で競争力を高める狙いがあるとみられる。
 
-## 業務への影響
-
-Nvidiaに対抗するため、AI半導体とモデル開発の垂直統合が進むとみられる。将来的には、ロボットや物理シミュレーションの分野で、ハードウェアとソフトウェアの選択肢に影響を与える可能性がある。
-
 ## 元記事
 
 - [AMD acquires World Labs AI startup, upping the ante against Nvidia](<https://arstechnica.com/ai/2026/09/amd-acquires-world-labs-ai-pioneer-fei-fei-lis-world-models-startup/>)（Ars Technica AI）

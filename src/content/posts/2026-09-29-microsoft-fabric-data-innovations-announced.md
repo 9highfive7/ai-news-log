@@ -22,10 +22,6 @@ Power BIのセマンティックモデルなどをCopilotに連携させる「Fa
 
 さらに、運用監視の強化や、ガバナンスを効かせたデータ基盤の上でアプリを開発する機能も提供される予定である。
 
-## 業務への影響
-
-社内に散らばったデータやセマンティックモデルをAIアシスタントに直接つなげられるようになり、BIツールやデータ基盤を扱うエンジニアの作業効率が上がるとみられる。組織間のデータ共有やガバナンス機能の強化により、データ管理の負担を抑えながらAI活用アプリの開発を進められる可能性がある。
-
 ## 元記事
 
 - [New Microsoft data innovations unlock what only your business knows](<https://blogs.microsoft.com/blog/2026/09/28/new-microsoft-data-innovations-unlock-what-only-your-business-knows/>)（Microsoft Official Blog）

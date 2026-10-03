@@ -22,10 +22,6 @@ Google Cloudは「Google Cloud Developer Plugin for AI Coding Agents」を発表
 
 仕様の変化が早いクラウド環境でも、AIが最新の情報に沿って適切な構成を提案・構築できるよう支援するものとみられる。
 
-## 業務への影響
-
-AIにインフラ設計やコード生成を任せる際の精度向上が期待できる。最新の仕様に沿った実装がしやすくなり、インフラ構築の工数削減につながる可能性がある。
-
 ## 元記事
 
 - [コーディングエージェントにGoogle Cloudの専門知識とツールを組み込む「Google Cloud Developer Plugin for AI Coding Agents」発表](<https://www.publickey1.jp/blog/26/google_cloudgoogle_cloud_developer_plugin_for_ai_coding_agents.html>)（Publickey）

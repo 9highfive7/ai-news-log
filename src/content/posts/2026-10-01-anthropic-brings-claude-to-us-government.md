@@ -22,10 +22,6 @@ Anthropicは、米国の連邦および州の政府機関を対象に、行政�
 
 一方、国防総省からは自律型兵器や監視に関する方針をめぐる対立から供給リスクに指定されており、今回の対象は非軍事部門の機関となっている。
 
-## 業務への影響
-
-高いセキュリティが求められる政府系システムで、監査ログや権限管理を備えた生成AIの導入が進むとみられる。今後の案件では、クラウドのセキュリティ認証のレベルがAI基盤を選ぶ際の重要な要件になる可能性がある。
-
 ## 元記事
 
 - [Anthropic brings Claude to civilian agencies as its fight with the Pentagon drags on](<https://the-decoder.com/anthropic-brings-claude-to-civilian-agencies-as-its-fight-with-the-pentagon-drags-on/>)（The Decoder）

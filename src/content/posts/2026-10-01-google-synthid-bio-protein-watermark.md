@@ -22,10 +22,6 @@ Google DeepMindは、AIが生成したタンパク質に電子透かしを埋め
 
 バイオセキュリティの向上を目的としており、AIを使った生物学研究の安全性を高める取り組みとして注目される。
 
-## 業務への影響
-
-AIが作ったものの出どころを追跡し、安全性を担保する仕組みとして技術的な参考になる。AIの安全性基準づくりや、同様の追跡技術をほかの分野に応用する動きが注目される。
-
 ## 元記事
 
 - [Introducing SynthID Bio](<https://deepmind.google/blog/introducing-synthid-bio/>)（Google DeepMind）

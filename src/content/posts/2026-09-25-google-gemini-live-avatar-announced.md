@@ -22,10 +22,6 @@ Google DeepMindは、対話型AI「Gemini 3.8 Live」に映像の存在感を加
 
 企業のブランドに合わせて独自のアバターを作れるほか、SynthIDによる電子透かしを付けるなど安全面にも配慮している。
 
-## 業務への影響
-
-カスタマーサポートや対話型のガイドなど、顧客と直接やり取りするサービスの作り方に影響を与える可能性がある。アバターのカスタマイズや多言語対応、バックグラウンド処理を組み合わせたエージェント設計が求められるようになるだろう。
-
 ## 元記事
 
 - [Introducing Gemini 3.8 Live with Live Avatar](<https://deepmind.google/blog/introducing-gemini-38-live-with-live-avatar/>)（Google DeepMind）

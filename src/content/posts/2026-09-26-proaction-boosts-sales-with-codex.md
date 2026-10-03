@@ -22,10 +22,6 @@ rank: 1
 
 その結果、売上が60%増え、75時間以上の作業時間を削減できたという。OpenAIが導入事例として紹介している。
 
-## 業務への影響
-
-生成AIやコーディング支援ツールを実際のプロダクト開発や営業プロセスに組み込むことで、大きな生産性向上が見込めることを示す事例である。開発プロセスを自動化するツールを選ぶ際の参考になる。
-
 ## 元記事
 
 - [Proaction boosts sales 60% and saves 75+ hours with Codex](<https://openai.com/index/proaction>)（OpenAI News）

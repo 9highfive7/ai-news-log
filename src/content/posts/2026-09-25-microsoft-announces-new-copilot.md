@@ -22,10 +22,6 @@ Microsoftは、チャットやOffice文書の作成機能をまとめた新し�
 
 これらの機能は今後数週間にわたり、プレビューとして順次展開される予定である。
 
-## 業務への影響
-
-エンジニアでなくても自然言語で社内向けアプリや自動化処理を作れるようになり、業務効率化の手段が大きく広がる可能性がある。一方で、生成されたコードやアプリのセキュリティ管理とガバナンス体制の整備がより重要になるとみられる。
-
 ## 元記事
 
 - [Introducing the new Copilot with Home, Code and Autopilot](<https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/>)（Microsoft Official Blog）

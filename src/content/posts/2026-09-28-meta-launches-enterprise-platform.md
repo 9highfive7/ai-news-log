@@ -22,10 +22,6 @@ Metaは、企業の成長や変革をAIで支援する新事業「Meta Enterpris
 
 法人向け事業を統括する責任者には、MongoDBの前CEOが就任する。
 
-## 業務への影響
-
-MetaのAIモデルやエージェントが法人向けに提供されることで、サービスへのAI導入や開発プロセスの効率化で選択肢が増える可能性がある。セキュリティやプライバシーへの配慮がうたわれており、具体的なAPI仕様や導入コストが注目される。
-
 ## 元記事
 
 - [Launching Meta Enterprise Platform](<https://about.fb.com/news/2026/09/launching-meta-enterprise-platform/>)（Meta Newsroom）

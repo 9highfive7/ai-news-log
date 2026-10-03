@@ -1,8 +1,8 @@
 ---
 title: "10/3 CloudflareがClefモデルを発表"
 date: 2026-10-03T09:51:39+09:00
-tags: ["ツール", "研究"]
-lead: "CloudflareはAIエージェントの自動判断に特化したClefおよびClef-flashモデルを発表しました。"
+tags: ["ツール"]
+lead: "Cloudflareが、文章を生成せず選択肢ごとの確率を返す、AIエージェントの判断用モデル「Clef」と高速版「Clef-flash」を発表した。"
 source_name: "The Decoder"
 source_url: "https://the-decoder.com/cloudflare-says-its-new-clef-model-means-humans-no-longer-need-to-be-in-the-loop-for-ai-agents/"
 rank: 4
@@ -21,10 +21,6 @@ Cloudflareは、AIエージェント向けにテキスト生成を行わず構�
 Clef-flashは中央値39ミリ秒という高速なレスポンスを特徴とし、競合モデルと比較して優位性を持つ。Qwenベースのモデルとして構築され、テキストと画像の両方に対応しているのが強みである。
 
 同社は、AIエージェントが人間の介在なしに文脈を収集し決定を下すことを目指している。今後は顧客が独自タスクに合わせて微調整できる強化学習サービスも提供する予定である。
-
-## 業務への影響
-
-AIエージェントを活用したシステム開発において、従来のLLMよりも高速かつ構造化された判断処理を組み込めるようになります。人間による手動の割り振りを経ずに自動でチケットのルーティングやエスカレーションを行う仕組みの構築が進むとみられます。
 
 ## 元記事
 

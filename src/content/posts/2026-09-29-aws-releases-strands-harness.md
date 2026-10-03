@@ -20,10 +20,6 @@ Amazon Web Services（AWS）は、さまざまな大規模言語モデルを使�
 
 Amazon BedrockのほかClaude、GPT、Gemini、Ollamaなど多様なLLMに対応し、数行のコードでファイル操作やWeb検索などができるエージェントを作れる。使うLLMは後から切り替えられ、Linuxコンテナが動く環境ならどこにでもデプロイできる。
 
-## 業務への影響
-
-特定のLLMベンダーに縛られずに、独自のAIエージェントを開発・運用する選択肢が増える。コンテキスト管理やツール連携を備えたハーネスを使うことで、エージェント開発の工数を減らせると期待される。
-
 ## 元記事
 
 - [AWS、AIエージェントを自作できるツール「Strandsハーネス」をオープンソースで公開。特定のLLMに依存せず入れ替え可能、任意のコンテナ環境にデプロイ](<https://www.publickey1.jp/blog/26/awsaistrandsllm.html>)（Publickey）

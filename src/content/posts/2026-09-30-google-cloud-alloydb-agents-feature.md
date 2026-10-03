@@ -20,10 +20,6 @@ Google Cloudは、AlloyDBの新機能「PostgreSQL for agents in AlloyDB」を�
 
 エージェント側の負荷に合わせてインスタンスが自動で伸縮するため、別系統のデータパイプラインを事前に用意する必要がない。現在はプレビューとして提供されており、各種の検索機能やSQLをそのまま使える。
 
-## 業務への影響
-
-AIエージェントを実装する際、本番DBへの負荷を気にせずにリアルタイムのデータを使えるようになる。データ同期の仕組みを別に組む手間が省け、機能開発を速められるとみられる。
-
 ## 元記事
 
 - [Google Cloud、AIエージェントからの大量アクセスをPostgreSQLのプライマリDBから切り離せる「PostgreSQL for agents in AlloyDB」発表](<https://www.publickey1.jp/blog/26/google_cloudaipostgresqldbpostgresql_for_agents_in_alloydb.html>)（Publickey）

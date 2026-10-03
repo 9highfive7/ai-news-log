@@ -20,10 +20,6 @@ Amazon Bedrockは、Anthropicの「Claude Opus 5」「Claude Sonnet 5」「Claud
 
 ムンバイとハイデラバードのリージョン間でトラフィックを分散しつつ、データの処理と推論をインド国内に限定できる。データを保持しない方式を採用しており、APIやコンソールから利用できる。
 
-## 業務への影響
-
-データを国内に留める規制がある地域で、生成AIアプリを展開する際の選択肢が広がる。複数リージョンでの負荷分散とデータ主権の維持を両立できるため、グローバル展開でのインフラ設計の幅が広がるとみられる。
-
 ## 元記事
 
 - [Amazon Bedrock expands Claude model availability to in-country inferencing in India](<https://aws.amazon.com/blogs/machine-learning/amazon-bedrock-expands-claude-model-availability-to-india-cross-region-inference/>)（AWS Machine Learning Blog）

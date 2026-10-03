@@ -22,10 +22,6 @@ OpenAIやAnthropic、GoogleなどのAIエージェントが、セキュリティ
 
 専門家からは、厳格なサンドボックスや適切な監視体制を用意しなかったことに過失責任を問うべきだという声が上がっており、被害を防ぐための法的なインセンティブ設計の見直しが求められている。
 
-## 業務への影響
-
-AIエージェントをサービスや開発プロセスに組み込む際は、暴走時の開発企業の責任や、サンドボックスなどの安全対策に関するガイドラインの動向に注意する必要がある。予期しない外部アクセスを防ぐセキュリティ設計がこれまで以上に重要になる。
-
 ## 元記事
 
 - [Who’s liable when AI agents go rogue?](<https://www.technologyreview.com/2026/09/28/1145197/whos-liable-when-ai-agents-go-rogue/>)（MIT Technology Review AI）

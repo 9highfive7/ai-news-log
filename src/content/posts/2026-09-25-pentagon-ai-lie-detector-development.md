@@ -22,10 +22,6 @@ AIと機械学習による判定アルゴリズムを使い、体にセンサー
 
 職員の採用時の審査や内部不正の検出に使う予定だが、専門家からは従来の嘘発見器と同様に、信頼性や偏りへの懸念が示されている。
 
-## 業務への影響
-
-感情や身体反応をAIで自動分析するシステムでは、データの信頼性確保や偏りの排除が難しいことが改めて浮き彫りになった。高い精度が求められる判定システムでは、単一の指標に頼らず、多角的に検証する仕組みを設計することが重要である。
-
 ## 元記事
 
 - [The Pentagon wants $30 million to build an AI-powered lie detector](<https://www.technologyreview.com/2026/09/25/1145144/pentagon-ai-lie-detector/>)（MIT Technology Review AI）

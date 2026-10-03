@@ -559,7 +559,7 @@ article[data-pagefind-body] {
   line-height: 1.9;
 }
 
-/* 小見出し（要約・業務への影響・元記事）は手書き風。左の縦線は使わない */
+/* 小見出し（要約・元記事）は手書き風。左の縦線は使わない */
 .post-body h2 {
   margin: 40px 0 8px;
   font-family: var(--font-hand);

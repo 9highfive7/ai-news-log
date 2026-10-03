@@ -20,10 +20,6 @@ DeepSeekはHuaweiと協力し、同社のAIチップ「Ascend」向けのプロ�
 
 ハードウェアの性能を引き出しつつ、より簡潔にコードを書けるようにすることが目的とみられる。中国国内のAI開発で、NVIDIA以外の選択肢が広がる可能性がある。
 
-## 業務への影響
-
-NVIDIA製GPUとCUDA以外の選択肢が台頭する可能性があり、将来のマルチプラットフォーム対応やインフラ選定では、NVIDIA以外の環境の動向も注視していく必要がある。
-
 ## 元記事
 
 - [DeepSeekがHuaweiと提携しAscend向け「TileLang」など6つのAI開発ツールをオープンソースで公開、NVIDIAのCUDA依存低減を狙う](<https://gigazine.net/news/20261001-deepseek-huawei-ascend/>)（GIGAZINE）

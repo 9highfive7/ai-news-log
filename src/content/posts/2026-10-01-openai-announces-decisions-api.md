@@ -20,10 +20,6 @@ OpenAIは、あらかじめ決めた選択肢の中から、それぞれの確�
 
 汎用のLLMは処理が遅く費用もかかるが、出力を選択肢に絞ることで、画像の理解や安全性を保ちながら高速に処理できる。特に、自律型のAIエージェントの行動を低コストで監視し、不適切な動作を止める用途での活用が期待されている。
 
-## 業務への影響
-
-AIエージェントを業務システムに組み込む際、実行ごとの監視コストを大きく減らせる可能性がある。エージェントの安全確保や暴走対策の費用対効果が上がり、導入のハードルが下がるとみられる。
-
 ## 元記事
 
 - [OpenAI’s Jev clone could help the frontier lab stop its swarming agents](<https://techcrunch.com/2026/09/30/openais-jev-clone-could-help-the-frontier-lab-stop-its-swarming-agents/>)（TechCrunch AI）

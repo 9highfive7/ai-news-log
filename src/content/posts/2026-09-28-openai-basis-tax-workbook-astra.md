@@ -22,10 +22,6 @@ OpenAIは、Basisが最新モデル「GPT-6 Astra」を使って税務業務を�
 
 ユーザーの意図をより正確に把握できるようになったことで、実際の業務での信頼性も高まったとしている。
 
-## 業務への影響
-
-LLMの処理速度や文脈理解の向上により、複雑なデータ処理や文書分析を伴う業務を自動化できる範囲が広がるとみられる。業務ツールへの組み込みや、より高度な作業をAIに任せる場面が増えるだろう。
-
 ## 元記事
 
 - [Basis completes a tax workbook 2x faster with GPT-6 Astra](<https://openai.com/index/basis-tax-workbook-with-astra>)（OpenAI News）
