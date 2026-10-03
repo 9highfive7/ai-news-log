@@ -10,17 +10,17 @@ rank: 7
 
 ## ポイント
 
-- Power BIのセマンティックモデルなどをCopilotに連携する「Fabric IQ」が一般提供へ
-- 組織の外とも安全にデータを共有できる「IQ Sharing」を発表
-- 運用監視やガバナンスを重視したアプリ開発機能も強化
+- Fabric IQによりPower BIの定義をCopilotへ連携可能
+- IQ Sharingでガバナンスを維持した組織間データ共有に対応
+- Fabric Appsでガバナンスの効いたデータ基盤上でのアプリ開発を実現
 
 ## 要約
 
-Microsoftは「Microsoft Fabric」やAzureのデータベースに関する新しいデータ活用機能を発表した。
+Microsoftは現地時間の2026年9月28日、バルセロナで開催されたEuropean Microsoft Fabric + SQL Community Conferenceにて、Microsoft FabricおよびAzure Databasesにおける新しいデータ革新機能を発表した。
 
-Power BIのセマンティックモデルなどをCopilotに連携させる「Fabric IQ」が一般提供となるほか、組織の外と安全にデータを共有できる「IQ Sharing」などが導入される。
+「Fabric IQ」により、Power BIのセマンティックモデルやビジネス定義をMicrosoft Copilot ChatやCoworkに直接連携させることが可能となる。また、プレビュー提供が開始された「IQ Sharing」では、企業境界を越えてガバナンスを維持したままデータやビジネス文脈の安全な共有を実現する。さらに、クロスワークスペース監視を行う「Observability in Fabric」や、ガバナンスが効いたデータ上でアプリケーション開発を行える「Fabric Apps」なども導入される。
 
-さらに、運用監視の強化や、ガバナンスを効かせたデータ基盤の上でアプリを開発する機能も提供される予定である。
+Fabric IQはCopilot ChatおよびCoworkでデフォルト有効となっており、IQ Sharingは現在プレビュー段階として提供されている。
 
 ## 元記事
 
