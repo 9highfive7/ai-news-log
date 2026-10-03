@@ -53,4 +53,10 @@ export function isFatalApiError(err: unknown): boolean {
   return status === 400 || status === 401 || status === 403 || status === 404;
 }
 
+/** 利用上限（レート制限）のエラー。SDK の自動リトライでも回復しなかったもの */
+export function isRateLimitError(err: unknown): boolean {
+  const status = (err as { status?: number } | null)?.status;
+  return status === 429 || /RESOURCE_EXHAUSTED|"code":\s*429/.test(err instanceof Error ? err.message : String(err));
+}
+
 export type { LlmProvider, ProviderName } from './types.ts';

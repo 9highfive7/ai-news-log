@@ -34,10 +34,10 @@ export const CRITERIA = [
     levels: ['意味が通らない箇所が多い', '不自然な言い回しが目立つ', 'ところどころ不自然', 'おおむね自然', '自然で読みやすい'],
   },
   {
-    key: 'usefulness',
-    label: '業務への有用性',
-    question: 'IT企業のエンジニアやPMが読んで、要点と業務への影響がつかめる記事になっているか',
-    levels: ['役に立たない', 'あまり役に立たない', 'ある程度役に立つ', '役に立つ', '非常に役に立つ'],
+    key: 'specificity',
+    label: '情報の具体性',
+    question: 'IT企業のエンジニアが読んで、仕様・数値・提供条件など具体的な事実がつかめる記事になっているか（一般論や感想で埋めていないか）',
+    levels: ['具体的な情報がない', '一般論が多い', 'ある程度具体的', '具体的', '非常に具体的'],
   },
   {
     key: 'headline',
@@ -125,7 +125,7 @@ export function createJudge(): Judge | null {
       const answers = await ask(
         { 元記事: source(item, body), 記事A: articleText(first[1]), 記事B: articleText(second[1]) },
         {
-          better: choice('社内向けのAIニュース記事として、どちらが優れているか。元記事に対する正確さを最も重視し、次に分かりやすさと業務への有用性で判断する', {
+          better: choice('社内向けのAIニュース記事として、どちらが優れているか。元記事に対する正確さを最も重視し、次に分かりやすさと情報の具体性で判断する', {
             A: '記事Aの方が優れている',
             B: '記事Bの方が優れている',
             tie: '同程度',
@@ -187,6 +187,5 @@ function articleText(draft: ArticleDraft): string {
     `見出し: ${draft.headline}`,
     `要約: ${draft.summary}`,
     `ポイント:\n${draft.points.map((p) => `- ${p}`).join('\n')}`,
-    `業務への影響: ${draft.impact}`,
   ].join('\n');
 }

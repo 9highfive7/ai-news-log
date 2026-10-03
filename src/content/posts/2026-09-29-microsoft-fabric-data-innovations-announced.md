@@ -1,8 +1,8 @@
 ---
-title: "9/29 マイクロソフトがFabricの新機能とデータ活用基盤を発表"
+title: "9/29 MicrosoftがFabric IQなどデータ新機能を発表"
 date: 2026-09-29T12:00:00+09:00
 tags: ["Microsoft", "ツール"]
-lead: "マイクロソフトが欧州のイベントで「Microsoft Fabric」やAzureデータベースの新機能を発表し、AI戦略の強化を狙う。"
+lead: "MicrosoftがFabricとAzureのDBの新機能を発表した。Power BIのデータ定義をCopilotにつなぐ「Fabric IQ」などを含む。"
 source_name: "Microsoft Official Blog"
 source_url: "https://blogs.microsoft.com/blog/2026/09/28/new-microsoft-data-innovations-unlock-what-only-your-business-knows/"
 rank: 7
@@ -10,21 +10,17 @@ rank: 7
 
 ## ポイント
 
-- Power BIの文脈をCopilotに統合するFabric IQが一般提供へ
-- 組織を跨いだ安全なデータ共有を可能にするIQ Sharing機能を発表
-- 運用監視やガバナンスを重視したアプリ開発機能の強化を実施
+- Fabric IQによりPower BIの定義をCopilotへ連携可能
+- IQ Sharingでガバナンスを維持した組織間データ共有に対応
+- Fabric Appsでガバナンスの効いたデータ基盤上でのアプリ開発を実現
 
 ## 要約
 
-マイクロソフトは「Microsoft Fabric」やAzureデータベースに関する新たなデータ活用機能を発表した。
+Microsoftは現地時間の2026年9月28日、バルセロナで開催されたEuropean Microsoft Fabric + SQL Community Conferenceにて、Microsoft FabricおよびAzure Databasesにおける新しいデータ革新機能を発表した。
 
-Power BIのセマンティックモデルなどをCopilotに連携させる「Fabric IQ」や、組織外との安全なデータ共有を可能にする機能などが導入される。
+「Fabric IQ」により、Power BIのセマンティックモデルやビジネス定義をMicrosoft Copilot ChatやCoworkに直接連携させることが可能となる。また、プレビュー提供が開始された「IQ Sharing」では、企業境界を越えてガバナンスを維持したままデータやビジネス文脈の安全な共有を実現する。さらに、クロスワークスペース監視を行う「Observability in Fabric」や、ガバナンスが効いたデータ上でアプリケーション開発を行える「Fabric Apps」なども導入される。
 
-さらに、運用監視の強化や、ガバナンスを効かせたデータ基盤上でのアプリケーション開発機能も提供される予定である。
-
-## 業務への影響
-
-社内の散在するデータやセマンティックモデルをAIアシスタントに直接連携できるようになるため、BIツールやデータ基盤を扱うエンジニアの作業効率が向上するとみられる。組織間のデータ共有やガバナンス機能の強化により、データ管理の負担を軽減しつつAI活用アプリの開発を加速できる可能性がある。
+Fabric IQはCopilot ChatおよびCoworkでデフォルト有効となっており、IQ Sharingは現在プレビュー段階として提供されている。
 
 ## 元記事
 

@@ -73,7 +73,7 @@ export function toParagraphs(text: string): string {
   return paragraphs.join('\n\n');
 }
 
-/** 本文（ポイント／要約／業務への影響／元記事）。headingLevel で見出しの深さを変えられる */
+/** 本文（ポイント／要約／元記事）。headingLevel で見出しの深さを変えられる */
 export function renderArticleBody(draft: ArticleDraft, item: FeedItem, headingLevel = 2): string {
   const h = '#'.repeat(headingLevel);
   const linkTitle = item.title.replace(/[[\]]/g, '');
@@ -85,10 +85,6 @@ export function renderArticleBody(draft: ArticleDraft, item: FeedItem, headingLe
     `${h} 要約`,
     '',
     toParagraphs(draft.summary),
-    '',
-    `${h} 業務への影響`,
-    '',
-    draft.impact.trim(),
     '',
     `${h} 元記事`,
     '',

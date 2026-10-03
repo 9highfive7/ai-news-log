@@ -1,8 +1,8 @@
 ---
-title: "9/25 マイクロソフトが新Copilotを発表"
+title: "9/25 Microsoftが新しいCopilotを発表"
 date: 2026-09-25T12:00:00+09:00
 tags: ["Microsoft", "ツール"]
-lead: "マイクロソフトが、新しい作業モードや開発機能を統合し、自律的なタスク実行にも対応した次世代の「Microsoft Copilot」を発表しました。"
+lead: "Microsoftが新しい「Microsoft Copilot」を発表した。アプリを作る「Code」や、自律的に作業を続ける「Autopilot」などを備える。"
 source_name: "Microsoft Official Blog"
 source_url: "https://blogs.microsoft.com/blog/2026/09/25/introducing-the-new-copilot-with-home-code-and-autopilot/"
 rank: 2
@@ -10,21 +10,17 @@ rank: 2
 
 ## ポイント
 
-- チャットとOffice機能が統合されたホーム画面を提供
-- 自然言語でアプリを作成できるCode機能を追加
-- 自律的にタスクをこなすエージェント機能Autopilotを導入
+- チャットとOfficeを統合したHome機能が追加された
+- 自然言語でソリューション構築が可能なCode機能が実装された
+- ユーザーの不在時も自律的に稼働するAutopilotが導入された
 
 ## 要約
 
-マイクロソフトは、チャットやOffice文書の作成機能を統合した新しい「Microsoft Copilot」を発表した。
+Microsoftは、多様化する作業に対応するために機能を再構築した新しいMicrosoft Copilotを発表した。
 
-新機能として、誰でも自然言語でアプリや自動化ツールを作成できる「Code」や、バックグラウンドで自律的に作業を継続する「Autopilot」などが追加されている。
+新しいCopilotアプリには、チャットやOffice文書の編集機能を統合した「Home」、非開発者でも自然言語でアプリや自動化ツールを構築できるGitHub Copilot技術基盤の「Code」、ユーザーが離れている間も自律的に作業を継続する「Autopilot」の3つの新機能が追加された。また、Microsoft 365環境内で安全にコードを実行するためのインフラ「Copilot Managed Runtime」も提供される。
 
-これらの機能は今後数週間にわたって順次プレビュー展開される予定となっている。
-
-## 業務への影響
-
-非エンジニアでも自然言語で内部向けアプリや自動化処理を作成できるようになり、業務効率化の手段が大きく広がる可能性がある。一方で、生成されたコードやアプリのセキュリティ管理とガバナンス体制の整備がより重要になるとみられる。
+HomeとCodeは数週間以内にFrontierプログラムへ順次展開され、Autopilotは月末にプライベートプレビューが開始される予定である。
 
 ## 元記事
 

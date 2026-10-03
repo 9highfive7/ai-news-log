@@ -15,9 +15,9 @@ import { join } from 'node:path';
 import { renderCompareReport, type CompareArticle, type CompareSelection } from './lib/compare.ts';
 import { createJudge } from './lib/judge.ts';
 import { fetchArticleText, fetchFeed, loadSources, normalizeUrl, type FeedItem } from './lib/feeds.ts';
-import { createProvider, hasApiKey, isFatalApiError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
+import { createProvider, hasApiKey, isFatalApiError, isRateLimitError, PROVIDERS, type LlmProvider, type ProviderName } from './lib/llm/index.ts';
 import { callJson, getStats } from './lib/llm/json.ts';
-import { jstParts, renderMarkdown, sanitizeSlug, uniqueFileName } from './lib/markdown.ts';
+import { jstParts, renderArticleBody, renderMarkdown, sanitizeSlug, uniqueFileName } from './lib/markdown.ts';
 import {
   addDays,
   collectCandidates,
@@ -213,25 +213,55 @@ async function runNormal(
 }
 
 interface PlanEntry {
-  /** 記事化するニュースのURL（url か title のどちらかで指定） */
+  /** 記事化するニュースのURL（url か title のどちらかで指定。replace のときは省略すると既存記事の source_url を使う） */
   url?: string;
   /** 見出しに含まれる文字列で探す（source と組み合わせる） */
   title?: string;
   /** 取得元の名前（sources.json の name） */
   source?: string;
-  /** 記事の日付（YYYY-MM-DD、日本時間） */
-  date: string;
+  /** 記事の日付（YYYY-MM-DD、日本時間）。replace のときは省略すると既存記事の日付を使う */
+  date?: string;
   /** その日の中での順位 */
   rank?: number;
   /** この語を見出しか概要に含む他の記事を「同じ話題の別記事」として材料に加える（元記事の本文が取れない場合の補足用） */
   relatedKeyword?: string;
   /** 既存の記事ファイルを書き直す場合のファイル名 */
   replace?: string;
+  /**
+   * replace と組み合わせる。フロントマター（見出し・lead・タグ・順位など）はそのまま残し、本文（ポイント・要約）だけを作り直す。
+   * 元記事の本文を取得できなかった場合は、既存の記事をそのまま残す
+   */
+  bodyOnly?: boolean;
+}
+
+/** 計画ファイルの記事化で利用上限にかかったときの待ち時間と試行回数 */
+const RATE_LIMIT_WAIT_MS = 60_000;
+const RATE_LIMIT_ATTEMPTS = 3;
+
+/** 既存の記事ファイルから、残すフロントマターと元記事の情報を読む（RSS から消えた記事を書き直すため） */
+async function readPostFile(fileName: string): Promise<{ frontmatter: string; ymd: string; item: FeedItem }> {
+  const text = await readFile(join(POSTS_DIR, fileName), 'utf8');
+  const frontmatter = text.match(/^---\n[\s\S]*?\n---\n/)?.[0];
+  if (!frontmatter) throw new Error(`フロントマターが読めません: ${fileName}`);
+  const str = (name: string) => {
+    const raw = frontmatter.match(new RegExp(`^${name}:\\s*(.*)$`, 'm'))?.[1]?.trim() ?? '';
+    return raw.startsWith('"') ? (JSON.parse(raw) as string) : raw;
+  };
+  const url = str('source_url');
+  const date = str('date');
+  // 元記事の見出しは本文末尾のリンク（- [見出し](<URL>)（媒体名））から取る
+  const linkTitle = text.match(/^- \[(.*)\]\(<[^>]*>\)/m)?.[1] ?? str('title');
+  return {
+    frontmatter: frontmatter.trimEnd(),
+    ymd: date.slice(0, 10),
+    item: { sourceName: str('source_name'), title: linkTitle, url, publishedAt: new Date(date), summary: '' },
+  };
 }
 
 /**
  * 計画ファイル（{"entries": PlanEntry[]}）のニュースを、指定した日付・順位で記事化する。
- * RSS に残っている記事だけが対象（処理済み・期間外でも対象）。記事化したニュースのURLを返す
+ * RSS に残っている記事が対象（処理済み・期間外でも対象）。既存記事の書き直し（replace）は、RSS から消えていても
+ * 記事ファイルの source_url から本文を取りにいく。記事化したニュースのURLを返す
  */
 async function runPlan(provider: LlmProvider, path: string): Promise<string[]> {
   const plan = JSON.parse(await readFile(path, 'utf8')) as { entries: PlanEntry[] };
@@ -241,13 +271,18 @@ async function runPlan(provider: LlmProvider, path: string): Promise<string[]> {
   const usedNames = new Set<string>();
   const done: string[] = [];
   for (const entry of plan.entries) {
-    const item = items.find((i) =>
-      entry.url
-        ? normalizeUrl(i.url) === normalizeUrl(entry.url)
+    const existing = entry.replace ? await readPostFile(entry.replace) : undefined;
+    const url = entry.url ?? (entry.title ? undefined : existing?.item.url);
+    const date = entry.date ?? existing?.ymd;
+    const found = items.find((i) =>
+      url
+        ? normalizeUrl(i.url) === normalizeUrl(url)
         : !!entry.title && i.title.includes(entry.title) && (!entry.source || i.sourceName === entry.source),
     );
-    if (!item) {
-      console.error(`  ✗ 取得元のRSSに見つかりません: ${entry.url ?? entry.title}`);
+    // RSS から消えた記事でも、書き直しなら既存記事に書いてある元記事URLから本文を取りにいく
+    const item = found ?? (existing && url && normalizeUrl(existing.item.url) === normalizeUrl(url) ? existing.item : undefined);
+    if (!item || !date) {
+      console.error(`  ✗ 取得元のRSSに見つかりません: ${url ?? entry.title}`);
       continue;
     }
     const keyword = entry.relatedKeyword?.toLowerCase();
@@ -256,16 +291,37 @@ async function runPlan(provider: LlmProvider, path: string): Promise<string[]> {
           .filter((i) => i.url !== item.url && `${i.title} ${i.summary}`.toLowerCase().includes(keyword))
           .slice(0, 6)
       : [];
-    console.log(`記事化: [${item.sourceName}] ${item.title}（${entry.date}・${entry.rank ?? '-'}位${related.length ? `・関連 ${related.length} 件` : ''}）`);
-    try {
-      const draft = await writeArticle(provider, item, related, await fetchBody(item));
-      const fileName = entry.replace ?? uniqueFileName(POSTS_DIR, entry.date, sanitizeSlug(draft.slug), usedNames);
-      await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, new Date(`${entry.date}T12:00:00+09:00`), entry.rank));
-      done.push(item.url);
-      console.log(`  → src/content/posts/${fileName}`);
-    } catch (err) {
-      if (isFatalApiError(err)) throw err;
-      console.error(`  ✗ 記事化に失敗しました: ${errorMessage(err)}`);
+    console.log(
+      `記事化: [${item.sourceName}] ${item.title}（${date}・${entry.rank ?? '-'}位${related.length ? `・関連 ${related.length} 件` : ''}` +
+        `${entry.bodyOnly ? '・本文のみ' : ''}${found ? '' : '・RSSになし'}）`,
+    );
+    const body = await fetchBody(item);
+    if (entry.bodyOnly && existing && !body) {
+      console.error('  ✗ 元記事の本文を取得できないため、既存の記事をそのまま残します');
+      continue;
+    }
+    // 本数が多いと無料枠などの利用上限（1分あたりの回数）にかかるので、そのときは待ってやり直す
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const draft = await writeArticle(provider, item, related, body);
+        if (entry.bodyOnly && existing) {
+          await writeFile(join(POSTS_DIR, entry.replace!), `${existing.frontmatter}\n\n${renderArticleBody(draft, existing.item)}`);
+        } else {
+          const fileName = entry.replace ?? uniqueFileName(POSTS_DIR, date, sanitizeSlug(draft.slug), usedNames);
+          await writeFile(join(POSTS_DIR, fileName), renderMarkdown(draft, item, new Date(`${date}T12:00:00+09:00`), entry.rank));
+        }
+        done.push(item.url);
+        console.log(`  → src/content/posts/${entry.replace ?? '(新規)'}`);
+      } catch (err) {
+        if (isFatalApiError(err)) throw err;
+        if (isRateLimitError(err) && attempt < RATE_LIMIT_ATTEMPTS) {
+          console.warn(`  利用上限にかかったため ${RATE_LIMIT_WAIT_MS / 1000} 秒待ってやり直します (${attempt}/${RATE_LIMIT_ATTEMPTS})`);
+          await new Promise((r) => setTimeout(r, RATE_LIMIT_WAIT_MS));
+          continue;
+        }
+        console.error(`  ✗ 記事化に失敗しました: ${errorMessage(err).slice(0, 300)}`);
+      }
+      break;
     }
   }
   if (plan.entries.length > 0 && done.length === 0) throw new Error('計画ファイルの記事を1本も記事化できませんでした');

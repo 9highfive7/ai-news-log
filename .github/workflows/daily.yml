@@ -51,8 +51,8 @@ jobs:
   generate:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    # さかのぼり収集は日数分の選別・記事化をするので長めに取る
-    timeout-minutes: ${{ inputs.since && 60 || 20 }}
+    # さかのぼり収集・計画ファイルは本数が多くなることがあるので長めに取る
+    timeout-minutes: ${{ (inputs.since || inputs.plan) && 60 || 20 }}
     outputs:
       count: ${{ steps.generate.outputs.count }}
     steps:
@@ -101,10 +101,10 @@ jobs:
 
       - name: Collect dry-run articles
         if: inputs.dry_run && steps.generate.outputs.count != '0'
-        # 既存の記事は除き、今回生成されたファイルだけを集める
+        # 今回生成・書き直したファイルだけを集める（計画ファイルの書き直しで変更された既存記事も含む）
         run: |
           mkdir -p dry-run-output
-          git ls-files --others --exclude-standard src/content/posts | xargs -r -I{} cp {} dry-run-output/
+          git ls-files --others --modified --exclude-standard src/content/posts | xargs -r -I{} cp {} dry-run-output/
           # 実行結果ページの Summary でも読めるようにする
           {
             echo "# dry-run で生成された記事"

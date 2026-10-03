@@ -1,8 +1,8 @@
 ---
-title: "10/1 AWSが複数AIエージェントの連携基盤を発表"
+title: "10/1 AWSがAgentCoreに長時間実行基盤を追加"
 date: 2026-10-01T12:00:00+09:00
 tags: ["ツール"]
-lead: "AWSは、数日間にわたる長期セッションやGPUを活用した複数AIエージェントの連携実行基盤を発表した。"
+lead: "Amazon Bedrock AgentCoreに、GPUも使える「Runtime Instances」が加わり、複数のエージェントが数日がかりの処理を共同で行える。"
 source_name: "AWS Machine Learning Blog"
 source_url: "https://aws.amazon.com/blogs/machine-learning/build-a-multi-agent-music-production-pipeline-on-amazon-bedrock-agentcore-runtime-instances/"
 rank: 5
@@ -10,21 +10,17 @@ rank: 5
 
 ## ポイント
 
-- 長期間のセッションやGPUが利用可能なランタイムインスタンスを提供
-- 複数エージェントが同一インスタンス上でファイルシステムを共有可能
-- 各エージェントを個別の成果物として独立してデプロイ・更新できる
+- Amazon Bedrock AgentCoreにRuntime Instances機能が追加された
+- 同一のセッションIDで複数のAIエージェントを同一EC2インスタンス上に配置できる
+- GPUや永続ボリュームを活用した数日間にわたる長期的なワークフロー構築が可能になる
 
 ## 要約
 
-Amazon Bedrock AgentCoreに、AWSが管理するEC2インスタンス上で長期的なエージェントワークフローを実行できる新機能が追加された。
+Amazon Web Servicesは、Amazon Bedrock AgentCoreのRuntime Instancesにおいて、複数エージェントによるワークフロー構築機能を発表した。
 
-これにより、複数のAIエージェントが同一のGPUインスタンスや共有ファイルシステム上で協調動作し、数日間にわたる処理を継続できるようになる。
+この機能により、GPUを備えたAWS管理のEC2インスタンス上で複数のエージェントを同じセッションIDで共同配置し、共有ファイルシステムを通じてファイルをやり取りすることが可能となる。音楽制作パイプラインの事例では、Claude Sonnet 4.6やオープンソースの音楽生成モデル「ACE-Step」を用いた作曲、マスタリング、コンプライアンスチェックの3つのエージェントが協調して動作する。
 
-記事では、音楽制作のワークフローを例に、作曲・配信・コンプライアンスの3つの専門エージェントを連携させる手順が紹介されている。
-
-## 業務への影響
-
-複雑なマルチエージェントシステムを開発・運用する際、インフラの構築や長時間にわたる状態管理の負担を軽減できる。複数チームが独立してエージェントを開発しつつ、共有環境で効率的に連携させるアーキテクチャの参考になる。
+Runtime Instancesは、数日間に及ぶセッションや永続ボリュームの利用をサポートしており、サーバーレスのMicroVM環境とは異なる長期的なエージェント運用を可能にする。
 
 ## 元記事
 
